@@ -1,7 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { CheckCheck, X } from "lucide-react";
 import DropdownMenuComp from "./DropdownMenuComp";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import axios from "axios";
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -12,7 +20,8 @@ const GroupCard = ({ group }) => {
   //hooks
   const { _id, title } = group;
   //States
-
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   //group states
   const [newTitle, setNewTitle] = useState(title);
   const [isEditing, setIsEditing] = useState(null);
@@ -45,10 +54,12 @@ const GroupCard = ({ group }) => {
   const handleUpdate = () => mutationUpdateGroup.mutate(_id);
   //fetching Todos For Specific Group
   const { data: todos } = useQuery({
-    queryKey: ["todos", _id],
+    queryKey: ["todos", _id, searchQuery],
     queryFn: () =>
       axios
-        .get(`http://localhost:5000/todos/${_id}`, { withCredentials: true })
+        .get(`http://localhost:5000/todos/${_id}?search=${searchQuery}`, {
+          withCredentials: true,
+        })
         .then((res) => res.data),
   });
   //reorder handlers
@@ -162,12 +173,39 @@ const GroupCard = ({ group }) => {
                 todos={todos}
                 moveLeft={moveLeft}
                 moveRight={moveRight}
+                setIsSearchOpen={setIsSearchOpen}
               />
             </>
           )}
         </div>
       </div>
       <TodoItemList todos={todos} group={group} />
+      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Search in {title}</DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4 flex gap-2">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              onKeyDown={(e)=>{if(e.key==="Enter"){setIsSearchOpen(false)}}}
+            />
+            {searchQuery && (
+              <Button variant="outline" onClick={() => setSearchQuery("")}>
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Let's add a little info text to tell the user what's happening */}
+          <p className="text-xs text-muted-foreground">
+            Showing only tasks containing "{searchQuery}"
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

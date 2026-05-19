@@ -16,12 +16,19 @@ export const createTodo = async (req, res) => {
 export const getGroupTodo = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const userId = req.user._id;
-    const todos = await Todo.find({ group: groupId /* user: userId */ })
+    const { search } = req.query;
+    let queryFilter = { group: groupId };
+    //searching filter
+    if (search) {
+      queryFilter.title = { $regex: search, $options: "i" };
+    }
+    const todos = await Todo.find(queryFilter)
       .sort({
         position: 1,
       })
-      .populate("assignedTo","name" );
+      .populate("assignedTo", "name");
+
+    //
     res.status(200).json(todos);
   } catch (error) {
     res.status(400).json({ msg: `error ${error.message}` });

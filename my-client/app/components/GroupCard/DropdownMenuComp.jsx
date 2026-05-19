@@ -14,13 +14,16 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
+  Search,
 } from "lucide-react";
+import { Input } from "../ui/input";
 const DropdownMenuComp = ({
   handleEditing,
   _id,
   mutationDeleteGroup,
   moveLeft,
   moveRight,
+  setIsSearchOpen,
 }) => {
   return (
     <DropdownMenu>
@@ -43,12 +46,16 @@ const DropdownMenuComp = ({
 
         {/* --- NEW REORDER SECTION --- */}
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setIsSearchOpen(true)}>
+          <Search></Search>
+          <span>search task</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuLabel>Reorder Column</DropdownMenuLabel>
 
         <DropdownMenuItem onClick={moveLeft}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Move Left
         </DropdownMenuItem>
-
         <DropdownMenuItem onClick={moveRight}>
           <ChevronRight className="mr-2 h-4 w-4" /> Move Right
         </DropdownMenuItem>

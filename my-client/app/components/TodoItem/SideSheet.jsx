@@ -88,7 +88,7 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
           title: todoTitle,
           description: todoDescription,
           group: targetGroupId,
-          assignedTo: assignedUserdId,
+          assignedTo: assignedUserdId === "unnasigned" ? null : assignedUserdId,
         },
         { withCredentials: true },
       ),
