@@ -16,11 +16,13 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import AddTodoModal from "../AddTodoModal";
 import { Input } from "../ui/input";
 import TodoItemList from "./TodoItemList";
+import ArchivedTasksModal from "../ArchivedTasksModal";
 const GroupCard = ({ group }) => {
   //hooks
   const { _id, title } = group;
   //States
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   //group states
   const [newTitle, setNewTitle] = useState(title);
@@ -174,6 +176,7 @@ const GroupCard = ({ group }) => {
                 moveLeft={moveLeft}
                 moveRight={moveRight}
                 setIsSearchOpen={setIsSearchOpen}
+                setIsArchiveOpen={setIsArchiveOpen}
               />
             </>
           )}
@@ -191,7 +194,11 @@ const GroupCard = ({ group }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              onKeyDown={(e)=>{if(e.key==="Enter"){setIsSearchOpen(false)}}}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsSearchOpen(false);
+                }
+              }}
             />
             {searchQuery && (
               <Button variant="outline" onClick={() => setSearchQuery("")}>
@@ -204,6 +211,25 @@ const GroupCard = ({ group }) => {
           <p className="text-xs text-muted-foreground">
             Showing only tasks containing "{searchQuery}"
           </p>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isArchiveOpen} onOpenChange={setIsArchiveOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Archived Tasks: {title}</DialogTitle>
+            <DialogDescription>
+              These tasks are hidden from your main board. You can restore or
+              permanently delete them here.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* THE LIST AREA */}
+          <div className="py-4 min-h-[200px] max-h-[400px] overflow-y-auto space-y-3">
+            <ArchivedTasksModal groupId={_id} />
+            <p className="text-sm text-muted-foreground italic text-center py-8">
+              No archived tasks found in this list.
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

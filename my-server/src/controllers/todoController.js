@@ -17,7 +17,7 @@ export const getGroupTodo = async (req, res) => {
   try {
     const { groupId } = req.params;
     const { search } = req.query;
-    let queryFilter = { group: groupId };
+    let queryFilter = { group: groupId, isArchived: false };
     //searching filter
     if (search) {
       queryFilter.title = { $regex: search, $options: "i" };
@@ -27,11 +27,27 @@ export const getGroupTodo = async (req, res) => {
         position: 1,
       })
       .populate("assignedTo", "name");
-
     //
     res.status(200).json(todos);
   } catch (error) {
-    res.status(400).json({ msg: `error ${error.message}` });
+    res
+      .status(400)
+      .json({ msg: `erro requesting group todo ${error.message}` });
+  }
+};
+//requesting archived todos
+export const getArchivedTodos = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const archived = await Todo.find({
+      group: groupId,
+      isArchived: true,
+    }).sort({ updatedAt: -1 });
+    res.status(200).json(archived);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ msg: `error getitng archived todos ${error.message}` });
   }
 };
 //requesting all todos

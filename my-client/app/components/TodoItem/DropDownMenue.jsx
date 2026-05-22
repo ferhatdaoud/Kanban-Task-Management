@@ -9,6 +9,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import {
+  Archive,
   ChevronDown,
   ChevronUp,
   ChevronsDown,
@@ -25,6 +26,7 @@ const DropDownMenue = ({
   moveTop,
   moveBottom,
   todo,
+  mutationToggleArchive,
 }) => {
   return (
     <div className="flex items-center gap-1 shrink-0 mt-0.5">
@@ -44,7 +46,10 @@ const DropDownMenue = ({
           <DropdownMenuItem onClick={() => setIsSheetOpen(true)}>
             <Pencil className="mr-2 h-4 w-4" /> View Details
           </DropdownMenuItem>
-
+          <DropdownMenuItem onClick={()=>mutationToggleArchive.mutate(todo._id)}>
+            <Archive className="mr-2 h-4 w-4" />
+            <span>Archive Task</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Reorder</DropdownMenuLabel>
           <DropdownMenuItem onClick={moveTop}>

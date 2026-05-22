@@ -78,7 +78,7 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
         .get("http://localhost:5000/group", { withCredentials: true })
         .then((res) => res.data),
   });
-
+  const [archived, setArchived] = useState(false);
   // --- 3. MUTATIONS (assignedTo field REMOVED from payload) ---
   const mutationUpdateTodoAndDescription = useMutation({
     mutationFn: (id) =>
@@ -88,6 +88,7 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
           title: todoTitle,
           description: todoDescription,
           group: targetGroupId,
+
           assignedTo: assignedUserdId === "unnasigned" ? null : assignedUserdId,
         },
         { withCredentials: true },
@@ -231,7 +232,6 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
                            mapping through users
                         */}
                         {allUsers?.map((user) => {
-                          console.log(user);
                           return (
                             <CommandItem
                               key={user._id}

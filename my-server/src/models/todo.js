@@ -26,6 +26,10 @@ const todoSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
     subtasks: [
       {
         title: { type: String },

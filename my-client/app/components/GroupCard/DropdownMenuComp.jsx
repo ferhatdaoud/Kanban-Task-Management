@@ -15,6 +15,7 @@ import {
   ChevronRight,
   MoreVertical,
   Search,
+  Archive,
 } from "lucide-react";
 import { Input } from "../ui/input";
 const DropdownMenuComp = ({
@@ -24,6 +25,7 @@ const DropdownMenuComp = ({
   moveLeft,
   moveRight,
   setIsSearchOpen,
+  setIsArchiveOpen,
 }) => {
   return (
     <DropdownMenu>
@@ -43,7 +45,10 @@ const DropdownMenuComp = ({
         <DropdownMenuItem onClick={handleEditing}>
           <Pencil className="mr-2 h-4 w-4" /> Rename Group
         </DropdownMenuItem>
-
+        <DropdownMenuItem onClick={() => setIsArchiveOpen(true)}>
+          <Archive className="mr-2 h-4 w-4" />
+          <span> View Archived Tasks</span>
+        </DropdownMenuItem>
         {/* --- NEW REORDER SECTION --- */}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => setIsSearchOpen(true)}>
