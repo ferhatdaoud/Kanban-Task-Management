@@ -12,26 +12,36 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+
 const AddTodoModal = ({ id }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+
+  // 1. Added State for description
   const [todoTitle, setTodoTitle] = useState("");
-  //adding Todo
+  const [todoDescription, setTodoDescription] = useState("");
+
   const mutatioAddTodo = useMutation({
     mutationFn: () =>
       axios
         .post(
           "http://localhost:5000/todos",
-          { title: todoTitle, group: id },
+          {
+            title: todoTitle,
+            description: todoDescription, // 
+            group: id,
+          },
           { withCredentials: true },
         )
         .then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries(["todos", id]);
       setTodoTitle("");
+      setTodoDescription(""); 
       setOpen(false);
     },
   });
+
   const handleSubmit = () => {
     if (todoTitle.trim()) {
       mutatioAddTodo.mutate();
@@ -39,7 +49,7 @@ const AddTodoModal = ({ id }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       handleSubmit();
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -50,7 +60,6 @@ const AddTodoModal = ({ id }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          onClick={() => setOpen(true)}
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
@@ -62,20 +71,39 @@ const AddTodoModal = ({ id }) => {
         <DialogHeader>
           <DialogTitle>Add a New Todo</DialogTitle>
           <DialogDescription>
-            Enter the todo text below and click Save to add it to your list.
+            Give your task a title and an optional description.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <input
-            type="text"
-            value={todoTitle}
-            onChange={(e) => setTodoTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
-            placeholder="Enter your todo..."
-          />
+        <div className="flex flex-col gap-4 py-4">
+          {/* Title Input */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Title
+            </label>
+            <input
+              type="text"
+              value={todoTitle}
+              onChange={(e) => setTodoTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+              placeholder="e.g., Buy Groceries"
+            />
+          </div>
+
+          {/* 4. Description Input */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Description (Optional)
+            </label>
+            <textarea
+              value={todoDescription}
+              onChange={(e) => setTodoDescription(e.target.value)}
+              className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring min-h-[80px] resize-none"
+              placeholder="Add more details..."
+            />
+          </div>
         </div>
 
         <DialogFooter>
@@ -93,17 +121,5 @@ const AddTodoModal = ({ id }) => {
     </Dialog>
   );
 };
-export default AddTodoModal;
 
-// <Dialog open={open} onOpenChange={setOpen}>
-//   <DialogTrigger asChild>
-//     <Button
-//       onClick={() => setOpen(true)}
-//       size="sm"
-//       variant="ghost"
-//       className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
-//     >
-//       <Plus className="h-4 w-4" />
-//     </Button>
-//   </DialogTrigger>
-// </Dialog>
+export default AddTodoModal;

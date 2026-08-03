@@ -1,12 +1,17 @@
 import React from "react";
-import { useState } from "react";
 import { Button } from "./ui/button";
 import { LogOut } from "lucide-react";
-
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import CreateGroup from "./CreateGroup";
-const Navbar = ({ user, handleLogout }) => {
-  console.log("Is handleLogout a function?", typeof handleLogout);
-
+const Navbar = ({ handleLogout }) => {
+  const { data: user } = useQuery({
+    queryKey: ["user"],
+    queryFn: () =>
+      axios
+        .get("http://localhost:5000/me", { withCredentials: true })
+        .then((res) => res.data),
+  });
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
@@ -15,7 +20,7 @@ const Navbar = ({ user, handleLogout }) => {
             My Tasks
           </h1>
           <p className="mt-1 truncate text-sm text-muted-foreground">
-            Welcome back, {user?.name || "User"}!
+            Welcome home {user?.name || "User"}!
           </p>
         </div>
 

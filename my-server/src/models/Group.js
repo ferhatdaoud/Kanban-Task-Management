@@ -15,6 +15,10 @@ const groupSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    position: {
+      type: Number,
+      default: Date.now(),
+    },
   },
   {
     timestamps: true,

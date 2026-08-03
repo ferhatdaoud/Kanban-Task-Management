@@ -13,9 +13,22 @@ const todoSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Group",
     },
+    description: {
+      type: String,
+      required: false,
+      default: "",
+    },
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
+    },
+    assignedTo: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
     },
     subtasks: [
       {
@@ -23,6 +36,7 @@ const todoSchema = new Schema(
         isDone: { type: Boolean, default: false },
       },
     ],
+    position: { type: Number, default: Date.now() },
     dueDate: { type: Date, default: Date.now },
   },
   {

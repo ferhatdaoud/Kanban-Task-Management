@@ -1,0 +1,376 @@
+import React, { useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "../ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { Trash2, Plus, X } from "lucide-react";
+
+const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
+  const queryClient = useQueryClient();
+
+  // --- 1.STATES---
+  const [todoTitle, setTodoTitle] = useState(todo.title);
+  const [todoDescription, setTodoDescription] = useState(
+    todo.description || "",
+  );
+  const [assignedUserdId, setAssignedUserId] = useState(
+    todo.assignedTo?._id || "unnasigned",
+  );
+  const [isAssignOpen, setIsAssignOpen] = useState(true);
+  const [targetGroupId, setTargetGroupId] = useState(group._id);
+  const [commentText, setCommentText] = useState("");
+
+  // --- 2. QUERIES  ---
+  //fetching users
+  const { data: allUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: () =>
+      axios
+        .get(`http://localhost:5000/user`, { withCredentials: true })
+        .then((res) => res.data),
+  });
+  //fetching comments
+  const { data: comments } = useQuery({
+    queryKey: ["comments", todo._id],
+    queryFn: () =>
+      axios
+        .get(`http://localhost:5000/comments/${todo._id}`, {
+          withCredentials: true,
+        })
+        .then((res) => res.data),
+  });
+
+  const { data: allGroups } = useQuery({
+    queryKey: ["groups"],
+    queryFn: () =>
+      axios
+        .get("http://localhost:5000/group", { withCredentials: true })
+        .then((res) => res.data),
+  });
+  const [archived, setArchived] = useState(false);
+  // --- 3. MUTATIONS (assignedTo field REMOVED from payload) ---
+  const mutationUpdateTodoAndDescription = useMutation({
+    mutationFn: (id) =>
+      axios.put(
+        `http://localhost:5000/todos/${id}`,
+        {
+          title: todoTitle,
+          description: todoDescription,
+          group: targetGroupId,
+
+          assignedTo: assignedUserdId === "unnasigned" ? null : assignedUserdId,
+        },
+        { withCredentials: true },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      setIsSheetOpen(false);
+    },
+  });
+
+  const mutationAddComment = useMutation({
+    mutationFn: () =>
+      axios.post(
+        `http://localhost:5000/comments`,
+        { content: commentText, todoId: todo._id },
+        { withCredentials: true },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["comments", todo._id]);
+      setCommentText("");
+    },
+  });
+
+  const mutationDeleteComment = useMutation({
+    mutationFn: (id) =>
+      axios.delete(`http://localhost:5000/comments/${id}`, {
+        withCredentials: true,
+      }),
+    onSuccess: () => queryClient.invalidateQueries(["comments", todo._id]),
+  });
+  const selectedUser = allUsers?.find((u) => u._id === assignedUserdId);
+
+  return (
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      <SheetTrigger asChild>
+        {/* <div className="flex flex-1 flex-col min-w-0 cursor-pointer text-left">
+          <span
+            className={`text-sm font-medium truncate ${todo.isDone ? "line-through text-muted-foreground" : "text-foreground"}`}
+          >
+            {todo.title}
+          </span>
+          {todo.description && (
+            <span className="text-xs text-muted-foreground line-clamp-1">
+              {todo.description}
+            </span>
+          )}
+        </div> */}
+      </SheetTrigger>
+
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-[450px] flex flex-col h-full p-0 bg-background"
+      >
+        <SheetHeader className="px-6 py-5 border-b border-border/40 shrink-0">
+          <SheetTitle className="text-xl font-bold tracking-tight">
+            Task Details
+          </SheetTitle>
+          <SheetDescription className="text-xs mt-1">
+            View and edit task information.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7 custom-scrollbar">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Task Title
+            </Label>
+            <Input
+              value={todoTitle}
+              onChange={(e) => setTodoTitle(e.target.value)}
+              className="h-10 bg-muted/40 border-transparent shadow-none text-sm font-medium"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Description
+            </Label>
+            <Textarea
+              value={todoDescription}
+              onChange={(e) => setTodoDescription(e.target.value)}
+              className="min-h-[100px] resize-none bg-muted/40 border-transparent shadow-none text-sm"
+            />
+          </div>
+
+          {/* --- ASSIGNED USERS (Logic Stripped) --- */}
+          <div className="space-y-3">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
+              Assigned Users
+            </Label>
+
+            <div className="flex flex-col gap-2">
+              {/* 
+                  TASK: This is where you will display the 'Current Badge' 
+                  once you have the state wired up.
+               */}
+              {selectedUser && (
+                <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md w-max mb-2">
+                  <span className="text-xs font-medium">
+                    {selectedUser.name}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-4 w-4 p-0"
+                    onClick={() => setAssignedUserId("unnasigned")}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              <Popover open={isAssignOpen} onOpenChange={setIsAssignOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-max h-7 px-3 bg-muted/40 text-xs text-muted-foreground shadow-none"
+                  >
+                    <Plus className="mr-1 h-3 w-3" /> Assign
+                  </Button>
+                </PopoverTrigger>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-muted-foreground font-normal shadow-none border-border/60"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Search to assign...
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="p-0 w-[300px]" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search users..."
+                      className="text-sm"
+                    />
+                    <CommandList className="max-h-[220px]">
+                      <CommandEmpty>No users found.</CommandEmpty>
+                      <CommandGroup>
+                        {/* 
+                           mapping through users
+                        */}
+                        {allUsers?.map((user) => {
+                          return (
+                            <CommandItem
+                              key={user._id}
+                              value={user.name}
+                              onSelect={() => {
+                                setAssignedUserId(user._id);
+                                setIsAssignOpen(false);
+                              }}
+                              className="flex items-center py-2.5 cursor-pointer"
+                            >
+                              <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold mr-3 shrink-0">
+                                ?
+                              </div>
+                              <span className="text-sm italic">
+                                {user.name}
+                              </span>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
+              Current List
+            </Label>
+            <Select value={targetGroupId} onValueChange={setTargetGroupId}>
+              <SelectTrigger className="w-full bg-background border-border/60 shadow-sm h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {allGroups?.map((g) => (
+                  <SelectItem key={g._id} value={g._id}>
+                    {g.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="border-t border-border/40 my-6" />
+
+          {/* ACTIVITY SECTION */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Activity
+              </Label>
+              <span className="text-xs bg-muted/60 text-muted-foreground px-2 py-0.5 rounded-md">
+                {comments?.length || 0}
+              </span>
+            </div>
+
+            <div className="space-y-5">
+              {comments?.map((comment) => (
+                <div
+                  key={comment._id}
+                  className="relative flex items-start gap-3 group/comment"
+                >
+                  <div className="h-6 w-6 rounded-full bg-secondary border border-border/50 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                    {comment.user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-foreground">
+                          {comment.user?.name}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          mutationDeleteComment.mutate(comment._id)
+                        }
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="text-sm text-foreground mt-1 bg-muted/30 p-2.5 rounded-md border border-border/30">
+                      {comment.content}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-start gap-3 pt-6">
+              <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0 mt-1">
+                ME
+              </div>
+              <div className="flex-1 space-y-2">
+                <Textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="min-h-[80px] text-sm resize-none bg-background border-border/60"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => mutationAddComment.mutate()}
+                    disabled={
+                      !commentText.trim() || mutationAddComment.isPending
+                    }
+                    variant="secondary"
+                  >
+                    Add Comment
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <SheetFooter className="p-4 border-t border-border/40 bg-background shrink-0">
+          <Button
+            size="lg"
+            className="w-full bg-black text-white h-11 text-sm font-bold"
+            onClick={() => mutationUpdateTodoAndDescription.mutate(todo._id)}
+            disabled={
+              mutationUpdateTodoAndDescription.isPending || !todoTitle.trim()
+            }
+          >
+            Save All Changes
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+export default SideSheet;

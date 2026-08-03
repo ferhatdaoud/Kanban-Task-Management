@@ -90,7 +90,7 @@ export default function Login() {
 
           {/* Footer */}
           <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Dont have an account?
             <Link
               to="/register"
               className="text-primary hover:underline font-medium"

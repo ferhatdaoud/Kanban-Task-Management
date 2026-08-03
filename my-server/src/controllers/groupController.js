@@ -13,8 +13,25 @@ export const createGroup = async (req, res) => {
 //requesting all group
 export const getUserGroups = async (req, res) => {
   try {
-    const group = await Group.find({ user: req.user._id });
+    const group = await Group.find({
+      /* user: req.user._id */
+    }).sort({ position: 1 });
     res.status(200).json(group);
+  } catch (error) {
+    res.status(400).json({ msg: `error creating group ${error.message}` });
+  }
+};
+//reordering a group
+export const reorderGroup = async (req, res) => {
+  try {
+    const { newArrCopy } = req.body;
+    for (let i = 0; i < newArrCopy.length; i++) {
+      const groupId = newArrCopy[i];
+      await Group.findByIdAndUpdate(groupId, {
+        position: i,
+      });
+    }
+    res.status(200).json({ msg: `Groups reordered Successfully` });
   } catch (error) {
     res.status(400).json({ msg: `error creating group ${error.message}` });
   }

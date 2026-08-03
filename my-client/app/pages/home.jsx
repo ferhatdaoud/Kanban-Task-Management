@@ -3,9 +3,11 @@ import { GroupsBoard } from "@/components/GroupsBoard";
 import axios from "axios";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 export default function Home() {
   //states
+  const [searchTerm, setSearchTerm] = useState("");
   //hooks
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -35,7 +37,8 @@ export default function Home() {
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <Navbar handleLogout={handleLogout} />
       <main className="flex-1 overflow-hidden p-6">
-        <GroupsBoard groups={groups} />
+      
+        <GroupsBoard groups={groups} searchTerm={searchTerm} />
       </main>
     </div>
   );
