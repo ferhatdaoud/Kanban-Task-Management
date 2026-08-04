@@ -26,35 +26,35 @@ A modern, full-stack task management application built with the **MERN** stack. 
 
 ## Demo
 
-| Auth Flow | Board View | Task Details |
-|---|---|---|
+| Auth Flow                                    | Board View                               | Task Details                                        |
+| -------------------------------------------- | ---------------------------------------- | --------------------------------------------------- |
 | Sign up / log in with JWT + httpOnly cookies | Kanban-style groups with live task lists | Right-side sheet with editing, assignment, comments |
 
-*(Screenshots can be added here)*
+_(Screenshots can be added here)_
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19, React Router 7 (framework), Vite |
-| **Styling** | Tailwind CSS v4, shadcn/ui (Radix UI primitives) |
-| **Server State** | TanStack Query v5 (optimistic updates, caching) |
-| **Form Handling** | react-hook-form + Zod schemas |
-| **HTTP Client** | Axios (with credentials) |
-| **Icons** | Lucide React |
-| **Backend** | Node.js, Express.js 5 |
-| **Database** | MongoDB (Atlas) via Mongoose ODM |
-| **Auth** | JSON Web Tokens (JWT), bcrypt password hashing |
-| **Dev Tooling** | ESLint 9, Vite, Nodemon |
+| Layer             | Technology                                       |
+| ----------------- | ------------------------------------------------ |
+| **Frontend**      | React 19, React Router 7 (framework), Vite       |
+| **Styling**       | Tailwind CSS v4, shadcn/ui (Radix UI primitives) |
+| **Server State**  | TanStack Query v5 (optimistic updates, caching)  |
+| **Form Handling** | react-hook-form + Zod schemas                    |
+| **HTTP Client**   | Axios (with credentials)                         |
+| **Icons**         | Lucide React                                     |
+| **Backend**       | Node.js, Express.js 5                            |
+| **Database**      | MongoDB (Atlas) via Mongoose ODM                 |
+| **Auth**          | JSON Web Tokens (JWT), bcrypt password hashing   |
+| **Dev Tooling**   | ESLint 9, Vite, Nodemon                          |
 
 ---
 
 ## Architecture
 
 ```
-react-todo/
+Kanban-Task-Management/
 │
 ├── my-client/                 # Frontend application
 │   ├── app/
@@ -96,17 +96,20 @@ react-todo/
 ## Features
 
 ### Authentication
+
 - **User registration** with email, name, and password confirmation
 - **Secure login/logout** using JWT stored in an `httpOnly` cookie (XSS-resistant)
 - **Password hashing** with bcrypt (salt rounds = 10)
 - Protected routes enforced via Express middleware (`protect`)
 
 ### Group / Board Management
+
 - Create, read, update (rename), and delete groups
 - Reorder groups horizontally with live UI + backend persistence
 - Progress indicator ("X of Y completed" per group)
 
 ### Task / Todo Management
+
 - Create tasks with title and optional description
 - Mark tasks as done / toggle completion status
 - Archive and restore tasks (archived tasks hidden from main view)
@@ -115,6 +118,7 @@ react-todo/
 - Search tasks within a group (case-insensitive regex)
 
 ### Task Details (Side Sheet)
+
 - Edit title and description
 - Change assignee from a searchable user dropdown
 - Move task between groups
@@ -122,12 +126,14 @@ react-todo/
 - Due date field (model)
 
 ### Comments
+
 - Add comments to tasks
 - View all comments with author name and timestamp
 - Delete comments
 - Live comment count badge
 
 ### Archived Tasks
+
 - Dedicated modal view for archived tasks per group
 - Restore archived tasks back to the board
 - View archive date
@@ -137,44 +143,48 @@ react-todo/
 ## Data Models
 
 ### User
-| Field | Type | Notes |
-|---|---|---|
-| `name` | String | Required |
-| `email` | String | Required, unique |
-| `password` | String | Hashed (bcrypt), never returned |
-| `timestamps` | Date | createdAt, updatedAt |
+
+| Field        | Type   | Notes                           |
+| ------------ | ------ | ------------------------------- |
+| `name`       | String | Required                        |
+| `email`      | String | Required, unique                |
+| `password`   | String | Hashed (bcrypt), never returned |
+| `timestamps` | Date   | createdAt, updatedAt            |
 
 ### Group
-| Field | Type | Notes |
-|---|---|---|
-| `title` | String | Required |
-| `description` | String | Optional |
-| `user` | ObjectId | Ref → User |
-| `position` | Number | For drag-free reorder |
-| `timestamps` | Date | |
+
+| Field         | Type     | Notes                 |
+| ------------- | -------- | --------------------- |
+| `title`       | String   | Required              |
+| `description` | String   | Optional              |
+| `user`        | ObjectId | Ref → User            |
+| `position`    | Number   | For drag-free reorder |
+| `timestamps`  | Date     |                       |
 
 ### Todo
-| Field | Type | Notes |
-|---|---|---|
-| `title` | String | Required |
-| `description` | String | Optional |
-| `group` | ObjectId | Ref → Group |
-| `user` | ObjectId | Ref → User |
-| `assignedTo` | ObjectId | Ref → User |
-| `isDone` | Boolean | Default `false` |
-| `isArchived` | Boolean | Default `false` |
-| `subtasks` | Array | `{ title, isDone }` |
-| `position` | Number | For reorder |
-| `dueDate` | Date | |
-| `timestamps` | Date | |
+
+| Field         | Type     | Notes               |
+| ------------- | -------- | ------------------- |
+| `title`       | String   | Required            |
+| `description` | String   | Optional            |
+| `group`       | ObjectId | Ref → Group         |
+| `user`        | ObjectId | Ref → User          |
+| `assignedTo`  | ObjectId | Ref → User          |
+| `isDone`      | Boolean  | Default `false`     |
+| `isArchived`  | Boolean  | Default `false`     |
+| `subtasks`    | Array    | `{ title, isDone }` |
+| `position`    | Number   | For reorder         |
+| `dueDate`     | Date     |                     |
+| `timestamps`  | Date     |                     |
 
 ### Comment
-| Field | Type | Notes |
-|---|---|---|
-| `content` | String | Required |
-| `user` | ObjectId | Ref → User |
-| `todo` | ObjectId | Ref → Todo |
-| `timestamps` | Date | |
+
+| Field        | Type     | Notes      |
+| ------------ | -------- | ---------- |
+| `content`    | String   | Required   |
+| `user`       | ObjectId | Ref → User |
+| `todo`       | ObjectId | Ref → Todo |
+| `timestamps` | Date     |            |
 
 ---
 
@@ -182,45 +192,49 @@ react-todo/
 
 Base URL: `http://localhost:5000`
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| POST | `/register` | Register a new user | Public |
-| POST | `/login` | Log in, set JWT cookie | Public |
-| POST | `/logout` | Clear JWT cookie | Public |
-| GET | `/me` | Get current user | Protected |
+| Method | Endpoint    | Description            | Auth      |
+| ------ | ----------- | ---------------------- | --------- |
+| POST   | `/register` | Register a new user    | Public    |
+| POST   | `/login`    | Log in, set JWT cookie | Public    |
+| POST   | `/logout`   | Clear JWT cookie       | Public    |
+| GET    | `/me`       | Get current user       | Protected |
 
 ### Groups
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/group` | Get all groups (sorted by position) |
-| POST | `/group` | Create a new group |
-| PUT | `/group/:id` | Update group title/description |
-| DELETE | `/group/:id` | Delete group + cascade delete its todos |
-| PUT | `/group/reorderGroup` | Reorder all groups |
+
+| Method | Endpoint              | Description                             |
+| ------ | --------------------- | --------------------------------------- |
+| GET    | `/group`              | Get all groups (sorted by position)     |
+| POST   | `/group`              | Create a new group                      |
+| PUT    | `/group/:id`          | Update group title/description          |
+| DELETE | `/group/:id`          | Delete group + cascade delete its todos |
+| PUT    | `/group/reorderGroup` | Reorder all groups                      |
 
 ### Todos
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/todos` | Get all todos |
-| GET | `/todos/:groupId?search=` | Get todos for a group (with optional search) |
-| POST | `/todos` | Create a new todo |
-| PUT | `/todos/:id` | Update a todo (title, description, isDone, isArchived, assignedTo, group) |
-| DELETE | `/todos/:id` | Delete a todo |
-| PUT | `/todos/reorderTodo` | Reorder todos within a group |
-| GET | `/todos/archived/:groupId` | Get archived todos for a group |
+
+| Method | Endpoint                   | Description                                                               |
+| ------ | -------------------------- | ------------------------------------------------------------------------- |
+| GET    | `/todos`                   | Get all todos                                                             |
+| GET    | `/todos/:groupId?search=`  | Get todos for a group (with optional search)                              |
+| POST   | `/todos`                   | Create a new todo                                                         |
+| PUT    | `/todos/:id`               | Update a todo (title, description, isDone, isArchived, assignedTo, group) |
+| DELETE | `/todos/:id`               | Delete a todo                                                             |
+| PUT    | `/todos/reorderTodo`       | Reorder todos within a group                                              |
+| GET    | `/todos/archived/:groupId` | Get archived todos for a group                                            |
 
 ### Comments
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/comments/:todoId` | Get all comments for a todo |
-| POST | `/comments` | Create a comment |
-| PUT | `/comments/:id` | Update a comment |
-| DELETE | `/comments/:id` | Delete a comment |
+
+| Method | Endpoint            | Description                 |
+| ------ | ------------------- | --------------------------- |
+| GET    | `/comments/:todoId` | Get all comments for a todo |
+| POST   | `/comments`         | Create a comment            |
+| PUT    | `/comments/:id`     | Update a comment            |
+| DELETE | `/comments/:id`     | Delete a comment            |
 
 ### Users
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/user` | Get all users (for assignment) |
+
+| Method | Endpoint | Description                    |
+| ------ | -------- | ------------------------------ |
+| GET    | `/user`  | Get all users (for assignment) |
 
 ---
 
@@ -237,7 +251,7 @@ Base URL: `http://localhost:5000`
 Clone and install dependencies in both folders:
 
 ```bash
-git clone https://github.com/mokhif/react-todo.git
+git clone https://github.com/ferhatdaoud/Kanban-Task-Management
 cd react-todo
 
 # Backend
@@ -294,15 +308,17 @@ react-todo/
 ## Scripts
 
 ### my-client
-| Script | Description |
-|---|---|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Production build |
-| `npm start` | Start the production server |
-| `npm run lint` | Run ESLint |
+
+| Script          | Description                 |
+| --------------- | --------------------------- |
+| `npm run dev`   | Start Vite dev server       |
+| `npm run build` | Production build            |
+| `npm start`     | Start the production server |
+| `npm run lint`  | Run ESLint                  |
 
 ### my-server
-| Script | Description |
-|---|---|
+
+| Script        | Description                              |
+| ------------- | ---------------------------------------- |
 | `npm run dev` | Start server with Nodemon (auto-restart) |
-| `npm start` | Start server in production mode |
+| `npm start`   | Start server in production mode          |
