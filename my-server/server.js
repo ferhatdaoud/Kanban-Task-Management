@@ -10,7 +10,6 @@ import userRoutes from "./src/routes/userRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import taskRouter from "./src/routes/taskRoutes.js";
 import boardRouter from "./src/routes/boardRoutes.js";
-
 const app = express();
 app.use(
   cors({
@@ -18,7 +17,7 @@ app.use(
     credentials: true,
   }),
 );
-const port = 5000;
+const PORT = process.env.PORT;
 app.use(cookieParser());
 app.use(express.json());
 
@@ -40,4 +39,4 @@ app.use("/comments", commentRouter);
 app.use("/user", userRoutes);
 // starting the server and connectinmg to the database
 connectDB().catch((error) => console.log(error));
-app.listen(port, () => console.log(`server is running on port:${port}`));
+app.listen(PORT, () => console.log(`server is running on port:${PORT}`));
