@@ -9,42 +9,37 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-
-const AddTodoModal = ({ id }) => {
+import api from "@/lib/api";
+const AddTaskModal = ({ id }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
   // 1. Added State for description
-  const [todoTitle, setTodoTitle] = useState("");
-  const [todoDescription, setTodoDescription] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
 
-  const mutatioAddTodo = useMutation({
+  const mutatioAddTask = useMutation({
     mutationFn: () =>
-      axios
-        .post(
-          "http://localhost:5000/todos",
-          {
-            title: todoTitle,
-            description: todoDescription, // 
-            group: id,
-          },
-          { withCredentials: true },
-        )
+      api
+        .post("/tasks", {
+          title: taskTitle,
+          description: taskDescription, //
+          board: id,
+        })
         .then((res) => res.data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["todos", id]);
-      setTodoTitle("");
-      setTodoDescription(""); 
+      queryClient.invalidateQueries(["tasks", id]);
+      setTaskTitle("");
+      setTaskDescription("");
       setOpen(false);
     },
   });
 
   const handleSubmit = () => {
-    if (todoTitle.trim()) {
-      mutatioAddTodo.mutate();
+    if (taskTitle.trim()) {
+      mutatioAddTask.mutate();
     }
   };
 
@@ -69,7 +64,7 @@ const AddTodoModal = ({ id }) => {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add a New Todo</DialogTitle>
+          <DialogTitle>Add a New Task</DialogTitle>
           <DialogDescription>
             Give your task a title and an optional description.
           </DialogDescription>
@@ -83,8 +78,8 @@ const AddTodoModal = ({ id }) => {
             </label>
             <input
               type="text"
-              value={todoTitle}
-              onChange={(e) => setTodoTitle(e.target.value)}
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               autoFocus
               className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
@@ -98,8 +93,8 @@ const AddTodoModal = ({ id }) => {
               Description (Optional)
             </label>
             <textarea
-              value={todoDescription}
-              onChange={(e) => setTodoDescription(e.target.value)}
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
               className="rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring min-h-[80px] resize-none"
               placeholder="Add more details..."
             />
@@ -112,9 +107,9 @@ const AddTodoModal = ({ id }) => {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!todoTitle.trim() || mutatioAddTodo.isPending}
+            disabled={!taskTitle.trim() || mutatioAddTask.isPending}
           >
-            {mutatioAddTodo.isPending ? "Saving..." : "Save Todo"}
+            {mutatioAddTask.isPending ? "Saving..." : "Save Task"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -122,4 +117,4 @@ const AddTodoModal = ({ id }) => {
   );
 };
 
-export default AddTodoModal;
+export default AddTaskModal;

@@ -5,9 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import axios from "axios";
+import api from "@/lib/api";
+
 import { useNavigate } from "react-router";
 import { registerSchema } from "../lib/schemas/authSchema";
 
@@ -23,9 +23,7 @@ export default function Register() {
 
   const onSubmit = async (data) => {
     try {
-      await axios.post("http://localhost:5000/register", data, {
-        withCredentials: true,
-      });
+      await api.post("/register", data);
       navigate("/");
     } catch (error) {
       console.error(error.response.data);
@@ -43,7 +41,7 @@ export default function Register() {
             Get started
           </h1>
           <p className="text-muted-foreground">
-            Create your todo account in seconds
+            Create your task account in seconds
           </p>
         </div>
 

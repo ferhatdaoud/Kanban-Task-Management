@@ -17,11 +17,10 @@ import {
   Search,
   Archive,
 } from "lucide-react";
-import { Input } from "../ui/input";
-const DropdownMenuComp = ({
+const BoardMenue = ({
   handleEditing,
   _id,
-  mutationDeleteGroup,
+  mutationDeleteBoard,
   moveLeft,
   moveRight,
   setIsSearchOpen,
@@ -40,10 +39,10 @@ const DropdownMenuComp = ({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Group Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>Board Actions</DropdownMenuLabel>
 
         <DropdownMenuItem onClick={handleEditing}>
-          <Pencil className="mr-2 h-4 w-4" /> Rename Group
+          <Pencil className="mr-2 h-4 w-4" /> Rename Board
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setIsArchiveOpen(true)}>
           <Archive className="mr-2 h-4 w-4" />
@@ -67,14 +66,14 @@ const DropdownMenuComp = ({
         {/* --------------------------- */}
 
         <DropdownMenuItem
-          onClick={() => mutationDeleteGroup.mutate(_id)}
+          onClick={() => mutationDeleteBoard.mutate(_id)}
           className="text-destructive focus:text-destructive focus:bg-destructive/10"
         >
-          <Trash2 className="mr-2 h-4 w-4" /> Delete Group
+          <Trash2 className="mr-2 h-4 w-4" /> Delete Board
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
-export default DropdownMenuComp;
+export default BoardMenue;

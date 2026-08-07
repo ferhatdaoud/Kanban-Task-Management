@@ -1,16 +1,13 @@
 import React from "react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import CreateGroup from "./CreateGroup";
+import api from "@/lib/api";
+import CreateBoard from "../CreateBoard";
 const Navbar = ({ handleLogout }) => {
   const { data: user } = useQuery({
     queryKey: ["user"],
-    queryFn: () =>
-      axios
-        .get("http://localhost:5000/me", { withCredentials: true })
-        .then((res) => res.data),
+    queryFn: () => api.get("/me").then((res) => res.data),
   });
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
@@ -25,7 +22,7 @@ const Navbar = ({ handleLogout }) => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <CreateGroup />
+          <CreateBoard />
 
           <Button
             type="button"

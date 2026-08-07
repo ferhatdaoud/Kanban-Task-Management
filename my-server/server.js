@@ -5,11 +5,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import protect from "./src/middleware/auth.js";
 import { connectDB } from "./config/db.js";
-import { register, login, logout } from "./src/controllers/authController.js";
-import todoRouter from "./src/routes/todoRoutes.js";
-import groupRouter from "./src/routes/groupRoutes.js";
 import commentRouter from "./src/routes/commentsRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import taskRouter from "./src/routes/taskRoutes.js";
+import boardRouter from "./src/routes/boardRoutes.js";
+
 const app = express();
 app.use(
   cors({
@@ -20,29 +21,19 @@ app.use(
 const port = 5000;
 app.use(cookieParser());
 app.use(express.json());
-app.get("/", (req, res) => {
-  res.status(200).send("hello world");
-});
 
 //REgistration Route
-app.post("/register", register);
-//Login
-app.post("/login", login);
-//protected route
 app.get("/me", protect, (req, res) => {
   res.status(200).json(req.user);
 });
-//protected route
 app.get("/", protect, (req, res) => {
   res.status(200).json({ msg: "Welcome", user: req.user });
 });
-//removing cookie
-app.post("/logout", logout);
+app.use("/", authRoutes);
 
-//Todo Crud Section
-app.use("/todos", todoRouter);
-//group crud section
-app.use("/group", groupRouter);
+//Task Crud Section
+app.use("/tasks", taskRouter);
+app.use("/boards", boardRouter);
 //comment crud section
 app.use("/comments", commentRouter);
 //user section

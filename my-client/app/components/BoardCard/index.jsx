@@ -1,84 +1,65 @@
 import { Button } from "@/components/ui/button";
 import { CheckCheck, X } from "lucide-react";
-import DropdownMenuComp from "./DropdownMenuComp";
+import BoardMenu from "./BoardMenu";
+import api from "@/lib/api";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import axios from "axios";
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import AddTodoModal from "../AddTodoModal";
+import AddTaskModal from "./AddTaskModal";
 import { Input } from "../ui/input";
-import TodoItemList from "./TodoItemList";
-import ArchivedTasksModal from "../ArchivedTasksModal";
-const GroupCard = ({ group }) => {
+import TaskList from "./TaskList";
+import ArchivedTasksModal from "./ArchivedTasksModal";
+const BoardCard = ({ board }) => {
   //hooks
-  const { _id, title } = group;
+  const { _id, title } = board;
   //States
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  //group states
+  //board states
   const [newTitle, setNewTitle] = useState(title);
   const [isEditing, setIsEditing] = useState(null);
-  //Todo states
+  //Task states
   const queryClient = useQueryClient();
-  //deleting group
-  const mutationDeleteGroup = useMutation({
-    mutationFn: (_id) =>
-      axios
-        .delete(`http://localhost:5000/group/${_id}`, { withCredentials: true })
-        .then((res) => res.data),
-    onSuccess: () => queryClient.invalidateQueries(["groups"]),
+  //deleting board
+  const mutationDeleteBoard = useMutation({
+    mutationFn: (_id) => api.delete(`/boards/${_id}`).then((res) => res.data),
+    onSuccess: () => queryClient.invalidateQueries(["boards"]),
   });
-  //updating group
-  const mutationUpdateGroup = useMutation({
+
+  const mutationUpdateBoard = useMutation({
     mutationFn: (_id) =>
-      axios
-        .put(
-          `http://localhost:5000/group/${_id}`,
-          { title: newTitle },
-          { withCredentials: true },
-        )
-        .then((res) => res.data),
+      api.put(`/boards/${_id}`, { title: newTitle }).then((res) => res.data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["groups"]);
+      queryClient.invalidateQueries(["boards"]);
       setIsEditing(null);
     },
   });
   const handleEditing = () => setIsEditing(!isEditing);
-  const handleUpdate = () => mutationUpdateGroup.mutate(_id);
-  //fetching Todos For Specific Group
-  const { data: todos } = useQuery({
-    queryKey: ["todos", _id, searchQuery],
+  const handleUpdate = () => mutationUpdateBoard.mutate(_id);
+  //fetching Tasks For Specific Board
+  const { data: tasks } = useQuery({
+    queryKey: ["tasks", _id, searchQuery],
     queryFn: () =>
-      axios
-        .get(`http://localhost:5000/todos/${_id}?search=${searchQuery}`, {
-          withCredentials: true,
-        })
-        .then((res) => res.data),
+      api.get(`/tasks/${_id}?search=${searchQuery}`).then((res) => res.data),
   });
   //reorder handlers
-  const mutationReorderGroup = useMutation({
-    mutationFn: (GroupArray) =>
-      axios.put(
-        "http://localhost:5000/group/reorderGroup",
-        {
-          newArrCopy: GroupArray.map((g) => g._id),
-        },
-        { withCredentials: true },
-      ),
+  const mutationReorderBoard = useMutation({
+    mutationFn: (BoardArray) =>
+      api.put("/boards/reorderBoard", {
+        boards: BoardArray.map((g) => g._id),
+      }),
   });
   const moveLeft = async () => {
-    await queryClient.cancelQueries({ queryKey: ["groups"] });
+    await queryClient.cancelQueries({ queryKey: ["boards"] });
 
-    const data = queryClient.getQueryData(["groups"]);
+    const data = queryClient.getQueryData(["boards"]);
     if (!data) return;
     //finding the index of the card
     const index = data.findIndex((g) => g._id === _id);
@@ -88,17 +69,17 @@ const GroupCard = ({ group }) => {
     //create a copy and swap
 
     const newArr = [...data];
-    const [removedGroup] = newArr.splice(index, 1);
+    const [removedboard] = newArr.splice(index, 1);
     //tell ui to update
-    newArr.splice(index - 1, 0, removedGroup);
+    newArr.splice(index - 1, 0, removedboard);
     //invoke backend to save
-    queryClient.setQueryData(["groups"], newArr);
-    mutationReorderGroup.mutate(newArr);
+    queryClient.setQueryData(["boards"], newArr);
+    mutationReorderBoard.mutate(newArr);
   };
   const moveRight = async () => {
-    await queryClient.cancelQueries({ queryKey: ["groups"] });
+    await queryClient.cancelQueries({ queryKey: ["boards"] });
 
-    const data = queryClient.getQueryData(["groups"]);
+    const data = queryClient.getQueryData(["boards"]);
     if (!data) return;
     //finding the index of the card
     const index = data.findIndex((g) => g._id === _id);
@@ -106,15 +87,15 @@ const GroupCard = ({ group }) => {
     if (index >= data.length - 1) return;
     //create a copy and swap
     const newArr = [...data];
-    const [removedGroup] = newArr.splice(index, 1);
-    newArr.splice(index + 1, 0, removedGroup);
+    const [removedboard] = newArr.splice(index, 1);
+    newArr.splice(index + 1, 0, removedboard);
     //tell ui to update
-    queryClient.setQueryData(["groups"], newArr);
+    queryClient.setQueryData(["boards"], newArr);
     //invoke backend to save
-    mutationReorderGroup.mutate(newArr);
+    mutationReorderBoard.mutate(newArr);
   };
   return (
-    <div className="flex w-80 flex-shrink-0 flex-col rounded-lg border border-border bg-card shadow-sm">
+    <div className="flex w-80 shrink-0 flex-col rounded-lg border border-border bg-card shadow-sm">
       {/* HEADER SECTION */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 group/header">
         {/* Title / Input Area */}
@@ -134,7 +115,7 @@ const GroupCard = ({ group }) => {
               </h2>
 
               <p className="text-xs text-muted-foreground">
-                {todos?.filter((t) => t.isDone).length} of {todos?.length}
+                {tasks?.filter((t) => t.isDone).length} of {tasks?.length}
                 completed
               </p>
             </>
@@ -165,14 +146,14 @@ const GroupCard = ({ group }) => {
             </div>
           ) : (
             <>
-              <AddTodoModal id={_id} />
-              <DropdownMenuComp
+              <AddTaskModal id={_id} />
+              <BoardMenu
                 handleEditing={handleEditing}
                 _id={_id}
-                mutationUpdateGroup={mutationUpdateGroup}
-                mutationDeleteGroup={mutationDeleteGroup}
-                group={group}
-                todos={todos}
+                mutationUpdateboard={mutationUpdateBoard}
+                mutationDeleteBoard={mutationDeleteBoard}
+                board={board}
+                tasks={tasks}
                 moveLeft={moveLeft}
                 moveRight={moveRight}
                 setIsSearchOpen={setIsSearchOpen}
@@ -182,7 +163,7 @@ const GroupCard = ({ group }) => {
           )}
         </div>
       </div>
-      <TodoItemList todos={todos} group={group} />
+      <TaskList tasks={tasks} board={board} />
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent>
           <DialogHeader>
@@ -214,7 +195,7 @@ const GroupCard = ({ group }) => {
         </DialogContent>
       </Dialog>
       <Dialog open={isArchiveOpen} onOpenChange={setIsArchiveOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-125">
           <DialogHeader>
             <DialogTitle>Archived Tasks: {title}</DialogTitle>
             <DialogDescription>
@@ -225,7 +206,7 @@ const GroupCard = ({ group }) => {
 
           {/* THE LIST AREA */}
           <div className="py-4 min-h-[200px] max-h-[400px] overflow-y-auto space-y-3">
-            <ArchivedTasksModal groupId={_id} />
+            <ArchivedTasksModal boardId={_id} />
             <p className="text-sm text-muted-foreground italic text-center py-8">
               No archived tasks found in this list.
             </p>
@@ -236,4 +217,4 @@ const GroupCard = ({ group }) => {
   );
 };
 
-export default GroupCard;
+export default BoardCard;

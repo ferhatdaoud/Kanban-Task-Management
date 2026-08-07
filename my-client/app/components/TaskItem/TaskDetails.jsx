@@ -33,106 +33,88 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { Trash2, Plus, X } from "lucide-react";
+import api from "@/lib/api";
 
-const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
+const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
   const queryClient = useQueryClient();
 
   // --- 1.STATES---
-  const [todoTitle, setTodoTitle] = useState(todo.title);
-  const [todoDescription, setTodoDescription] = useState(
-    todo.description || "",
+  const [taskTitle, setTaskTitle] = useState(task.title);
+  const [taskDescription, setTaskDescription] = useState(
+    task.description || "",
   );
-  const [assignedUserdId, setAssignedUserId] = useState(
-    todo.assignedTo?._id || "unnasigned",
+  const [assignedUserId, setAssignedUserId] = useState(
+    task.assignedTo?._id || "unassigned",
   );
   const [isAssignOpen, setIsAssignOpen] = useState(true);
-  const [targetGroupId, setTargetGroupId] = useState(group._id);
+  const [targetBoardId, setTargetBoardId] = useState(board._id);
   const [commentText, setCommentText] = useState("");
 
   // --- 2. QUERIES  ---
   //fetching users
   const { data: allUsers } = useQuery({
     queryKey: ["users"],
-    queryFn: () =>
-      axios
-        .get(`http://localhost:5000/user`, { withCredentials: true })
-        .then((res) => res.data),
+    queryFn: () => api.get(`/user`).then((res) => res.data),
   });
   //fetching comments
   const { data: comments } = useQuery({
-    queryKey: ["comments", todo._id],
-    queryFn: () =>
-      axios
-        .get(`http://localhost:5000/comments/${todo._id}`, {
-          withCredentials: true,
-        })
-        .then((res) => res.data),
+    queryKey: ["comments", task._id],
+    queryFn: () => api.get(`/comments/${task._id}`).then((res) => res.data),
   });
 
-  const { data: allGroups } = useQuery({
-    queryKey: ["groups"],
-    queryFn: () =>
-      axios
-        .get("http://localhost:5000/group", { withCredentials: true })
-        .then((res) => res.data),
+  const { data: allBoards } = useQuery({
+    queryKey: ["boards"],
+    queryFn: () => api.get(`/boards`).then((res) => res.data),
   });
   const [archived, setArchived] = useState(false);
   // --- 3. MUTATIONS (assignedTo field REMOVED from payload) ---
-  const mutationUpdateTodoAndDescription = useMutation({
+  const mutationUpdateTaskAndDescription = useMutation({
     mutationFn: (id) =>
-      axios.put(
-        `http://localhost:5000/todos/${id}`,
-        {
-          title: todoTitle,
-          description: todoDescription,
-          group: targetGroupId,
+      api
+        .put(`/tasks/${id}`, {
+          title: taskTitle,
+          description: taskDescription,
+          board: targetBoardId,
+          assignedTo: assignedUserId === "unassigned" ? null : assignedUserId,
+        })
+        .then((res) => res.data),
 
-          assignedTo: assignedUserdId === "unnasigned" ? null : assignedUserdId,
-        },
-        { withCredentials: true },
-      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setIsSheetOpen(false);
     },
   });
 
   const mutationAddComment = useMutation({
     mutationFn: () =>
-      axios.post(
-        `http://localhost:5000/comments`,
-        { content: commentText, todoId: todo._id },
-        { withCredentials: true },
-      ),
+      api
+        .post(`/comments`, { content: commentText, taskId: task._id })
+        .then((res) => res.data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["comments", todo._id]);
+      queryClient.invalidateQueries(["comments", task._id]);
       setCommentText("");
     },
   });
 
   const mutationDeleteComment = useMutation({
-    mutationFn: (id) =>
-      axios.delete(`http://localhost:5000/comments/${id}`, {
-        withCredentials: true,
-      }),
-    onSuccess: () => queryClient.invalidateQueries(["comments", todo._id]),
+    mutationFn: (id) => api.delete(`/comments/${id}`),
+    onSuccess: () => queryClient.invalidateQueries(["comments", task._id]),
   });
-  const selectedUser = allUsers?.find((u) => u._id === assignedUserdId);
+  const selectedUser = allUsers?.find((u) => u._id === assignedUserId);
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
         {/* <div className="flex flex-1 flex-col min-w-0 cursor-pointer text-left">
           <span
-            className={`text-sm font-medium truncate ${todo.isDone ? "line-through text-muted-foreground" : "text-foreground"}`}
+            className={`text-sm font-medium truncate ${task.isDone ? "line-through text-muted-foreground" : "text-foreground"}`}
           >
-            {todo.title}
+            {task.title}
           </span>
-          {todo.description && (
+          {task.description && (
             <span className="text-xs text-muted-foreground line-clamp-1">
-              {todo.description}
+              {task.description}
             </span>
           )}
         </div> */}
@@ -157,8 +139,8 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
               Task Title
             </Label>
             <Input
-              value={todoTitle}
-              onChange={(e) => setTodoTitle(e.target.value)}
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
               className="h-10 bg-muted/40 border-transparent shadow-none text-sm font-medium"
             />
           </div>
@@ -168,8 +150,8 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
               Description
             </Label>
             <Textarea
-              value={todoDescription}
-              onChange={(e) => setTodoDescription(e.target.value)}
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
               className="min-h-[100px] resize-none bg-muted/40 border-transparent shadow-none text-sm"
             />
           </div>
@@ -194,7 +176,7 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
                     size="sm"
                     variant="ghost"
                     className="h-4 w-4 p-0"
-                    onClick={() => setAssignedUserId("unnasigned")}
+                    onClick={() => setAssignedUserId("unassigned")}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -263,12 +245,12 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
               Current List
             </Label>
-            <Select value={targetGroupId} onValueChange={setTargetGroupId}>
+            <Select value={targetBoardId} onValueChange={setTargetBoardId}>
               <SelectTrigger className="w-full bg-background border-border/60 shadow-sm h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {allGroups?.map((g) => (
+                {allBoards?.map((g) => (
                   <SelectItem key={g._id} value={g._id}>
                     {g.title}
                   </SelectItem>
@@ -360,9 +342,9 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
           <Button
             size="lg"
             className="w-full bg-black text-white h-11 text-sm font-bold"
-            onClick={() => mutationUpdateTodoAndDescription.mutate(todo._id)}
+            onClick={() => mutationUpdateTaskAndDescription.mutate(task._id)}
             disabled={
-              mutationUpdateTodoAndDescription.isPending || !todoTitle.trim()
+              mutationUpdateTaskAndDescription.isPending || !taskTitle.trim()
             }
           >
             Save All Changes
@@ -373,4 +355,4 @@ const SideSheet = ({ todo, group, setIsSheetOpen, isSheetOpen }) => {
   );
 };
 
-export default SideSheet;
+export default TaskDetails;

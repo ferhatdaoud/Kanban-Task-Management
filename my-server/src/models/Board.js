@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-const groupSchema = new Schema(
+const boardSchema = new Schema(
   {
     title: {
       type: String,
@@ -15,6 +15,7 @@ const groupSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    members: [{ type: Schema.Types.ObjectId, ref: "User" }],
     position: {
       type: Number,
       default: Date.now(),
@@ -25,4 +26,4 @@ const groupSchema = new Schema(
   },
 );
 
-export default mongoose.model("Group", groupSchema);
+export default mongoose.model("Board", boardSchema);

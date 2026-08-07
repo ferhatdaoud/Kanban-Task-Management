@@ -2,11 +2,11 @@ import Comment from "../models/Comment.js";
 //creating a comment
 export const createComment = async (req, res) => {
   try {
-    const { content, todoId } = req.body;
+    const { content, taskId } = req.body;
     const comment = await Comment.create({
       content,
       user: req.user._id,
-      todo: todoId,
+      task: taskId,
     });
     res.status(201).json(comment);
   } catch (error) {
@@ -17,8 +17,11 @@ export const createComment = async (req, res) => {
 //getting all comments
 export const getComments = async (req, res) => {
   try {
-    const { todoId } = req.params;
-    const comments = await Comment.find({ todo: todoId }).populate("user","name");
+    const { taskId } = req.params;
+    const comments = await Comment.find({ task: taskId }).populate(
+      "user",
+      "name",
+    );
     res.status(200).json(comments);
   } catch (error) {
     res.status(400).json({ msg: `error getting comments ${error.message}` });
