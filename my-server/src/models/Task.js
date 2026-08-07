@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-const todoSchema = new Schema(
+const TaskSchema = new Schema(
   {
     title: {
       type: String,
@@ -9,9 +9,9 @@ const todoSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    group: {
+    board: {
       type: Schema.Types.ObjectId,
-      ref: "Group",
+      ref: "Board",
     },
     description: {
       type: String,
@@ -44,4 +44,4 @@ const todoSchema = new Schema(
   },
 );
 
-export default mongoose.model("Todo", todoSchema);
+export default mongoose.model("Task", TaskSchema);

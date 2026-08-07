@@ -18,14 +18,14 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-const DropDownMenue = ({
-  mutationDeleteTodo,
+const TaskMenu = ({
+  mutationDeleteTask,
   setIsSheetOpen,
   moveUp,
   moveDown,
   moveTop,
   moveBottom,
-  todo,
+  task,
   mutationToggleArchive,
 }) => {
   return (
@@ -46,7 +46,9 @@ const DropDownMenue = ({
           <DropdownMenuItem onClick={() => setIsSheetOpen(true)}>
             <Pencil className="mr-2 h-4 w-4" /> View Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={()=>mutationToggleArchive.mutate(todo._id)}>
+          <DropdownMenuItem
+            onClick={() => mutationToggleArchive.mutate(task._id)}
+          >
             <Archive className="mr-2 h-4 w-4" />
             <span>Archive Task</span>
           </DropdownMenuItem>
@@ -67,7 +69,7 @@ const DropDownMenue = ({
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => mutationDeleteTodo.mutate(todo._id)}
+            onClick={() => mutationDeleteTask.mutate(task._id)}
             className="text-destructive focus:text-destructive focus:bg-destructive/10"
           >
             <Trash2 className="mr-2 h-4 w-4" /> Delete Task
@@ -78,4 +80,4 @@ const DropDownMenue = ({
   );
 };
 
-export default DropDownMenue;
+export default TaskMenu;

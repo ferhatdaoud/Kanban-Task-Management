@@ -1,66 +1,54 @@
 import React, { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { Check } from "lucide-react";
-import SideSheet from "./SideSheet";
-import DropDownMenue from "./DropDownMenue";
+import TaskDetails from "./TaskDetails";
+import DropDownMenue from "./TaskMenu";
+import api from "@/lib/api";
 
-const TodoItem = ({ todo, group }) => {
-  const { _id } = todo;
+const TaskItem = ({ task, board }) => {
+  const { _id } = task;
   const queryClient = useQueryClient();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // --- MUTATIONS ---
-  const mutationDeleteTodo = useMutation({
-    mutationFn: (id) =>
-      axios
-        .delete(`http://localhost:5000/todos/${id}`, { withCredentials: true })
-        .then((res) => res.data),
-    onSuccess: () => queryClient.invalidateQueries(["todos", group._id]),
+  const mutationDeleteTask = useMutation({
+    mutationFn: (id) => api.delete(`/tasks/${id}`).then((res) => res.data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["tasks", board._id] }),
   });
 
   const mutationToggleDone = useMutation({
     mutationFn: (id) =>
-      axios
-        .put(
-          `http://localhost:5000/todos/${id}`,
-          { isDone: !todo.isDone },
-          { withCredentials: true },
-        )
-        .then((res) => res.data),
-    onSuccess: () => queryClient.invalidateQueries(["todos", group._id]),
+      api.put(`/tasks/${id}`, { isDone: !task.isDone }).then((res) => res.data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["tasks", board._id] }),
   });
   //archiving handler
   const mutationToggleArchive = useMutation({
     mutationFn: (id) =>
-      axios
-        .put(
-          `http://localhost:5000/todos/${id}`,
-          {
-            isArchived: !todo.isArchived,
-          },
-          { withCredentials: true },
-        )
+      api
+        .put(`/tasks/${id}`, {
+          isArchived: !task.isArchived,
+        })
         .then((res) => res.data),
-    onSuccess: () => queryClient.invalidateQueries(["todos", group._id]),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["tasks", board._id] }),
   });
   const mutationReorder = useMutation({
     mutationFn: (idListArray) =>
-      axios.put(
-        "http://localhost:5000/todos/reorderTodo",
-        { newOrder: idListArray.map((task) => task._id) },
-        { withCredentials: true },
-      ),
+      api.put(`/tasks/reorderTasks`, {
+        newOrder: idListArray.map((task) => task._id),
+      }),
   });
 
   // --- REORDER HANDLERS ---
   const syncOrder = (newArray) => {
-    queryClient.setQueryData(["todos", group._id], newArray);
+    queryClient.setQueryData(["tasks", board._id], newArray);
     mutationReorder.mutate(newArray);
   };
 
   const moveUp = () => {
-    const data = queryClient.getQueryData(["todos", group._id]);
+    const data = queryClient.getQueryData(["tasks", board._id]);
     const index = data.findIndex((t) => t._id === _id);
     if (index <= 0) return;
     const newArray = [...data];
@@ -70,7 +58,7 @@ const TodoItem = ({ todo, group }) => {
   };
 
   const moveDown = () => {
-    const data = queryClient.getQueryData(["todos", group._id]);
+    const data = queryClient.getQueryData(["tasks", board._id]);
     const index = data.findIndex((item) => item._id === _id);
     if (index >= data.length - 1) return;
     const newArray = [...data];
@@ -80,7 +68,7 @@ const TodoItem = ({ todo, group }) => {
   };
 
   const moveTop = () => {
-    const data = queryClient.getQueryData(["todos", group._id]);
+    const data = queryClient.getQueryData(["tasks", board._id]);
     const index = data.findIndex((t) => t._id === _id);
     if (index === 0) return;
     const newArray = [...data];
@@ -90,7 +78,7 @@ const TodoItem = ({ todo, group }) => {
   };
 
   const moveBottom = () => {
-    const data = queryClient.getQueryData(["todos", group._id]);
+    const data = queryClient.getQueryData(["tasks", board._id]);
     const index = data.findIndex((t) => t._id === _id);
     if (index >= data.length - 1) return;
     const newArray = [...data];
@@ -98,7 +86,6 @@ const TodoItem = ({ todo, group }) => {
     newArray.push(removed);
     syncOrder(newArray);
   };
-  const handleArchive = () => {};
   return (
     // 1. ADDED onClick and cursor-pointer to the main container
     <>
@@ -112,14 +99,14 @@ const TodoItem = ({ todo, group }) => {
           onClick={(e) => e.stopPropagation()} // 2. Stop propagation so menu click doesn't open sheet
         >
           <DropDownMenue
-            todo={todo}
-            group={group}
+            task={task}
+            board={board}
             setIsSheetOpen={setIsSheetOpen}
             moveTop={moveTop}
             moveUp={moveUp}
             moveDown={moveDown}
             moveBottom={moveBottom}
-            mutationDeleteTodo={mutationDeleteTodo}
+            mutationDeleteTask={mutationDeleteTask}
             mutationToggleArchive={mutationToggleArchive}
           />
         </div>
@@ -134,32 +121,32 @@ const TodoItem = ({ todo, group }) => {
             }}
             disabled={mutationToggleDone.isPending}
             className={`mt-1 shrink-0 w-5 h-5 rounded border transition-all flex items-center justify-center ${
-              todo.isDone
+              task.isDone
                 ? "bg-primary border-primary"
                 : "border-input hover:border-primary"
             }`}
           >
-            {todo.isDone && (
+            {task.isDone && (
               <Check className="w-3.5 h-3.5 text-primary-foreground" />
             )}
           </button>
 
           <div className="flex flex-col gap-1.5 flex-1 min-w-0 pr-4">
             <h3
-              className={`text-sm font-bold text-foreground leading-tight truncate ${todo.isDone ? "line-through text-muted-foreground" : ""}`}
+              className={`text-sm font-bold text-foreground leading-tight truncate ${task.isDone ? "line-through text-muted-foreground" : ""}`}
             >
-              {todo.title}
+              {task.title}
             </h3>
 
-            {todo.description && (
+            {task.description && (
               <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2">
-                {todo.description}
+                {task.description}
               </p>
             )}
 
             <div className="mt-0.5">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600">
-                {group.title}
+                {board.title}
               </span>
             </div>
           </div>
@@ -170,13 +157,13 @@ const TodoItem = ({ todo, group }) => {
         {/* --- FOOTER SECTION (Assignee Only) --- */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {todo.assignedTo ? (
+            {task.assignedTo ? (
               <div className="flex items-center gap-2 bg-[#F8F9FA] px-2 py-1 rounded-md border border-border/50">
                 <div className="h-5 w-5 rounded-full bg-purple-500 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
-                  {todo.assignedTo.name?.charAt(0).toUpperCase() || "U"}
+                  {task.assignedTo.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <span className="text-xs font-semibold text-foreground truncate max-w-[120px]">
-                  {todo.assignedTo.name}
+                  {task.assignedTo.name}
                 </span>
               </div>
             ) : (
@@ -187,11 +174,11 @@ const TodoItem = ({ todo, group }) => {
           </div>
         </div>
 
-        {/* The Hidden SideSheet Component */}
+        {/* The Hidden TaskDetails Component */}
       </div>
-      <SideSheet
-        todo={todo}
-        group={group}
+      <TaskDetails
+        task={task}
+        board={board}
         isSheetOpen={isSheetOpen}
         setIsSheetOpen={setIsSheetOpen}
       />
@@ -199,4 +186,4 @@ const TodoItem = ({ todo, group }) => {
   );
 };
 
-export default TodoItem;
+export default TaskItem;

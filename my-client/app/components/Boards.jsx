@@ -1,22 +1,22 @@
 "use client";
-import GroupCard from "./Groupcard";
+import BoardCard from "./BoardCard";
 
-const GroupsBoard = ({ groups }) => {
-  if (groups?.length === 0) {
+const Boards = ({ boards }) => {
+  if (boards?.length === 0) {
     return (
       <div className="flex min-h-96 items-center justify-center">
         <p className="text-lg text-muted-foreground">
-          Create a group to get started!
+          Create a board to get started!
         </p>
       </div>
     );
   }
   return (
     <div className="flex h-full gap-4 overflow-x-auto">
-      {groups?.map((group) => (
-        <GroupCard key={group._id} group={group} />
+      {boards?.map((board) => (
+        <BoardCard key={board._id} board={board} />
       ))}
     </div>
   );
 };
-export { GroupsBoard };
+export { Boards };

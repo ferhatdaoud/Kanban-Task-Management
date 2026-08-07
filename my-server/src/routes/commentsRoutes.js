@@ -1,4 +1,10 @@
 import express from "express";
+import { validateRequest } from "../../validators/validate.js";
+import {
+  createCommentSchema,
+  updateCommentSchema,
+} from "../../validators/index.js";
+
 import {
   createComment,
   getComments,
@@ -6,12 +12,16 @@ import {
   updateComment,
 } from "../controllers/commentController.js";
 import protect from "../middleware/auth.js";
-
 const router = express.Router();
 
-router.get("/:todoId", protect, getComments);
-router.post("/", protect, createComment);
+router.get("/:taskId", protect, getComments);
+router.post("/", protect, validateRequest(createCommentSchema), createComment);
 router.delete("/:id", protect, deleteComment);
-router.put("/:id", protect, updateComment);
+router.put(
+  "/:id",
+  protect,
+  validateRequest(updateCommentSchema),
+  updateComment,
+);
 
 export default router;

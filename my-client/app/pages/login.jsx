@@ -6,10 +6,9 @@ import { Link } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
-import axios from "axios";
 import { useState } from "react";
 import { loginSchema } from "../lib/schemas/authSchema";
-
+import api from "@/lib/api";
 export default function Login() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -21,9 +20,7 @@ export default function Login() {
 
   const onSubmit = async (data) => {
     try {
-      await axios.post("http://localhost:5000/login", data, {
-        withCredentials: true,
-      });
+      await api.post("/login", data);
       navigate("/");
     } catch (error) {
       console.error(error.response.data);
@@ -38,7 +35,7 @@ export default function Login() {
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Welcome back
           </h1>
-          <p className="text-muted-foreground">Sign in to your todo account</p>
+          <p className="text-muted-foreground">Sign in to your task account</p>
         </div>
 
         {/* Card */}
