@@ -13,7 +13,7 @@ import boardRouter from "./src/routes/boardRoutes.js";
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://kanban-task-management-sys.vercel.app"],
     credentials: true,
   }),
 );
