@@ -1,160 +1,93 @@
 # Kanban Task Management
 
-A full-stack Kanban task management application built with a **React + React Router** frontend and an **Express + MongoDB** backend. It supports user authentication, boards, tasks, subtasks, comments, archiving, drag-and-drop reordering, and due dates.
+A full-stack task management app built around the classic Kanban board idea — boards, tasks, subtasks, due dates, comments, and the ability to assign work to other people. It's been running fine for a while, though like any side project it has a few rough edges worth knowing about upfront.
 
-## Features
+## Tech stack
 
-- **Authentication** — register, login, and logout with JWT stored in HTTP-only cookies
-- **Boards** — create, read, update, delete, and reorder boards
-- **Tasks** — create, read, update, and delete tasks within boards
-- **Task assignment** — assign tasks to users
-- **Comments** — post and delete comments on tasks
-- **Archiving** — archive completed tasks and restore them from an archive view
-- **Search** — filter a board's tasks by title
-- **Reordering** — reorder boards and tasks via move buttons
-- **Validation** — request validation with `zod` on both client and server
-- **Responsive UI** — Tailwind CSS with Radix UI / shadcn components
+**Frontend:** React 19 with React Router 7 (SSR enabled), Vite, Tailwind CSS, and shadcn/ui for the UI bits. I used TanStack Query for server state, react-hook-form + Zod for forms, and Axios for requests.
 
-## Tech Stack
+**Backend:** Express 5 on Node.js (ESM only), MongoDB via Mongoose. Auth uses bcrypt + JWT stored in HTTP-only cookies.
 
-| Layer        | Technology                                                                 |
-|--------------|----------------------------------------------------------------------------|
-| Client       | React 19, React Router 7, Tailwind CSS, TanStack Query, Axios              |
-| Client forms | react-hook-form, Zod (with `@hookform/resolvers`)                          |
-| UI           | Radix UI (radix-ui), lucide-react, class-variance-authority, clsx          |
-| Server       | Node.js (ESM), Express 5, MongoDB (Mongoose)                               |
-| Auth         | bcrypt, jsonwebtoken, cookie-parser, cors                                  |
-| Dev          | Vite, ESLint, nodemon                                                      |
+## What it does
 
-## Project Structure
+- Register / login / logout with cookie-based JWT auth
+- Create and manage boards with progress tracking
+- Add tasks with subtasks, due dates, and assignment to users
+- Comments on tasks with a slide-over detail view
+- Archive completed tasks and bring them back when needed
+- Search tasks within a board
+- Reorder boards and tasks without fighting array indices
+- Role-based access (`owner`, `editor`, `viewer`) so you can share boards
 
-```
-kanban-task-management/
-├── my-client/          # React frontend (Vite + React Router)
-│   ├── app/
-│   │   ├── pages/      # Route pages: login, register, home
-│   │   ├── components/  # Radix UI shadcn components
-│   │   └── lib/        # API client, schemas, utils
-│   ├── public/
-│   └── Dockerfile
-├── my-server/          # Express backend API
-│   ├── src/
-│   │   ├── models/     # Mongoose models: User, Board, Task, Comment
-│   │   ├── controllers/  # Request handlers
-│   │   ├── routes/     # Express routers: auth, boards, tasks, comments, users
-│   │   └── middleware/  # Auth protection middleware
-│   └── config/         # MongoDB connection
-└── package-lock.json
-```
+## A few things worth knowing
 
-## Prerequisites
+The repo is technically a monorepo, but the two packages (`my-client` and `my-server`) don't actually share a root `package.json`. That means you `npm install` and `npm run dev` separately for each. I should probably fix that someday.
 
-- [Node.js](https://nodejs.org/) 20+
-- [npm](https://www.npmjs.com/)
-- [MongoDB](https://www.mongodb.com/) — a local instance or a MongoDB Atlas cluster
+Also, `connectDB()` gets called twice in `server.js` — harmless because Mongoose caches the connection, but not my finest moment. The RBAC helpers are duplicated between the board and task controllers instead of being a shared middleware. None of these are showstoppers, just things I noticed while writing this.
 
-## Getting Started
+## Getting it running
 
-### 1. Clone the repository
+### Prerequisites
 
+- Node.js 20+
+- npm
+- MongoDB (local or Atlas)
+
+### Setup
+
+**Server:**
 ```bash
-git clone https://github.com/<your-username>/kanban-task-management.git
-cd kanban-task-management
+cd my-server
+npm install
 ```
 
-### 2. Set up the environment variables
-
-**Server** — create `my-server/.env`:
-
-```bash
+Create a `.env` file:
+```
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
 JWT_SECRET=your-super-secret-key
 JWT_EXPIRE=7d
 ```
 
-**Client** — create `my-client/.env`:
-
+Then start it:
 ```bash
+npm run dev
+# runs on http://localhost:5000
+```
+
+**Client:**
+```bash
+cd my-client
+npm install
+```
+
+Create a `.env` file:
+```
 VITE_API_URL=http://localhost:5000
 ```
 
-### 3. Install dependencies
-
+Then start it:
 ```bash
-# Server
-cd my-server
-npm install
-
-# Client
-cd ../my-client
-npm install
+npm run dev
+# runs on http://localhost:5173
 ```
 
-### 4. Run the development servers
+Open `http://localhost:5173`, sign up, and start adding boards.
 
+## Production
+
+Build the client:
 ```bash
-# In one terminal — start the backend
-cd my-server
-npm run dev        # runs on http://localhost:5000
-```
-
-```bash
-# In another terminal — start the frontend
-cd my-client
-npm run dev        # runs on http://localhost:5173
-```
-
-Open [http://localhost:5173](http://localhost:5173) and sign up or log in.
-
-## API
-
-The backend exposes a REST API on `http://localhost:5000`. All routes (except registration and login) require a valid JWT in the `token` HTTP-only cookie.
-
-| Method   | Endpoint                  | Description                          |
-|----------|---------------------------|--------------------------------------|
-| POST     | `/register`               | Register a new user                  |
-| POST     | `/login`                  | Log in and set the JWT cookie        |
-| POST     | `/logout`                 | Clear the JWT cookie                 |
-| GET      | `/me`                     | Get the authenticated user          |
-| GET      | `/boards`                 | List the user's boards               |
-| POST     | `/boards`                 | Create a board                       |
-| PUT      | `/boards/:id`             | Update a board                       |
-| DELETE   | `/boards/:id`             | Delete a board                       |
-| PUT      | `/boards/reorderBoard`    | Reorder boards                       |
-| GET      | `/tasks`                  | List the user's tasks                |
-| GET      | `/tasks/:boardId`         | List tasks for a board (supports `?search=<term>`) |
-| GET      | `/tasks/archived/:boardId`| List archived tasks for a board      |
-| POST     | `/tasks`                  | Create a task                        |
-| PUT      | `/tasks/:id`              | Update a task                        |
-| DELETE   | `/tasks/:id`              | Delete a task                        |
-| PUT      | `/tasks/reorderTasks`     | Reorder tasks                        |
-| GET      | `/comments/:taskId`       | List comments for a task             |
-| POST     | `/comments`               | Create a comment                     |
-| PUT      | `/comments/:id`           | Update a comment                     |
-| DELETE   | `/comments/:id`           | Delete a comment                     |
-| GET      | `/user`                   | List all users (used for assignment) |
-
-## Building for Production
-
-```bash
-# Build the client
 cd my-client
 npm run build
+```
 
-# Start the production server
-cd ../my-server
+Start the server:
+```bash
+cd my-server
 npm start
 ```
 
-### Docker (client)
-
-The client ships with a multi-stage Dockerfile:
-
-```bash
-cd my-client
-docker build -t kanban-client .
-docker run -p 3000:3000 kanban-client
-```
+The client also has a multi-stage Dockerfile if that's your thing.
 
 ## License
 

@@ -5,7 +5,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import api from "@/lib/api";
 
-const ArchivedTasksModal = ({ boardId }) => {
+const ArchivedTasksModal = ({ boardId, canEditTasks = true }) => {
   const queryClient = useQueryClient();
   //fetching archived tasks
   const { data: archive, isLoading } = useQuery({
@@ -54,27 +54,31 @@ const ArchivedTasksModal = ({ boardId }) => {
           </div>
 
           <div className="flex items-center gap-1">
-            {/* RESTORE BUTTON */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
-              title="Restore to board"
-              onClick={() => mutationRestore.mutate(task._id)}
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
+            {canEditTasks && (
+              <>
+                {/* RESTORE BUTTON */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-primary hover:bg-primary/10"
+                  title="Restore to board"
+                  onClick={() => mutationRestore.mutate(task._id)}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
 
-            {/* PERMANENT DELETE BUTTON */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              title="Delete permanently"
-              onClick={() => console.log("Delete clicked for:", task._id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+                {/* PERMANENT DELETE BUTTON */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  title="Delete permanently"
+                  onClick={() => console.log("Delete clicked for:", task._id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       ))}

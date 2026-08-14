@@ -12,11 +12,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import api from "@/lib/api";
+import { toast } from "sonner";
+
 const AddTaskModal = ({ id }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
-  // 1. Added State for description
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
 
@@ -25,7 +26,7 @@ const AddTaskModal = ({ id }) => {
       api
         .post("/tasks", {
           title: taskTitle,
-          description: taskDescription, //
+          description: taskDescription,
           board: id,
         })
         .then((res) => res.data),
@@ -34,7 +35,9 @@ const AddTaskModal = ({ id }) => {
       setTaskTitle("");
       setTaskDescription("");
       setOpen(false);
+      toast.success("Task created");
     },
+    onError: () => toast.error("Failed to create task"),
   });
 
   const handleSubmit = () => {

@@ -1,84 +1,58 @@
-# Welcome to React Router!
+# Kanban Task Management System
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A full-stack project management tool with real-time task boards, role-based access control, and a modern UI.
+
+![React](https://img.shields.io/badge/React-19.2-blue)
+![React Router](https://img.shields.io/badge/React_Router-7.18-ff4500)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8)
+![Express](https://img.shields.io/badge/Express-5.1-black)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green)
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **Authentication**: Register, login, logout with JWT + HTTP-only cookies
+- **Board Management**: Create, rename, reorder, delete boards
+- **Task Management**: Add, edit, archive, delete, reorder tasks within boards
+- **Task Details**: Slide-out panel with title, description, assignee, comments, and board transfer
+- **Comments**: Add and delete comments on tasks with activity log
+- **Search**: Search tasks within a specific board
+- **Role-Based Access**: Owner, Editor, and Viewer roles with granular permissions
+- **Organization-Wide Boards**: All authenticated users see all boards, but only authorized users can edit
+- **Responsive UI**: Mobile-friendly layout with Tailwind CSS v4 and shadcn/ui
+
+## Tech Stack
+
+### Frontend (`my-client/`)
+- React 19 + React Router 7 (SSR)
+- TanStack Query (React Query) for data fetching and caching
+- Tailwind CSS v4 + shadcn/ui components
+- React Hook Form + Zod validation
+- Lucide icons
+
+### Backend (`my-server/`)
+- Express.js
+- MongoDB with Mongoose ODM
+- JWT authentication with HTTP-only cookies
+- Role-based access control middleware
+- Zod request validation
 
 ## Getting Started
 
+### Prerequisites
+- Node.js >= 18
+- MongoDB (local or Atlas)
+
 ### Installation
 
-Install the dependencies:
-
 ```bash
+# Clone the repo
+git clone <repo-url>
+cd Kanban-Task-Management
+
+# Install server dependencies
+cd my-server
 npm install
-```
 
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+# Install client dependencies
+cd ../my-client
+npm install

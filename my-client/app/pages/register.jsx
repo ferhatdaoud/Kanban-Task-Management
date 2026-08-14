@@ -1,7 +1,6 @@
-// app/routes/register.jsx
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +9,7 @@ import api from "@/lib/api";
 
 import { useNavigate } from "react-router";
 import { registerSchema } from "../lib/schemas/authSchema";
+import { toast } from "sonner";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -24,32 +24,29 @@ export default function Register() {
   const onSubmit = async (data) => {
     try {
       await api.post("/register", data);
+      toast.success("Account created! Welcome aboard.");
       navigate("/");
     } catch (error) {
-      console.error(error.response.data);
+      const msg = error.response?.data?.msg || "Registration failed";
+      toast.error(msg);
     }
   };
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="min-h-screen flex items-center justify-center bg-background px-4"
-    >
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Get started
-          </h1>
-          <p className="text-muted-foreground">
-            Create your task account in seconds
-          </p>
-        </div>
-
-        {/* Card */}
-        <Card className="p-6 border-border bg-card space-y-4">
-          {/* Full Name */}
-          <div className="space-y-2">
-            <Field data-invalid={!!errors.name}>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold">Get started</CardTitle>
+          <CardDescription>
+            Create your Kanban account in seconds
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
+            {/* Full Name */}
+            <div className="space-y-2">
               <FieldLabel
                 htmlFor="name"
                 className="text-foreground font-medium"
@@ -67,12 +64,10 @@ export default function Register() {
               <FieldDescription style={{ color: errors.name ? "red" : "" }}>
                 {errors.name ? errors.name.message : "Enter your full name"}
               </FieldDescription>
-            </Field>
-          </div>
+            </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Field data-invalid={!!errors.email}>
+            {/* Email */}
+            <div className="space-y-2">
               <FieldLabel
                 htmlFor="email"
                 className="text-foreground font-medium"
@@ -90,12 +85,10 @@ export default function Register() {
               <FieldDescription style={{ color: errors.email ? "red" : "" }}>
                 {errors.email ? errors.email.message : "Enter your email"}
               </FieldDescription>
-            </Field>
-          </div>
+            </div>
 
-          {/* Password */}
-          <div className="space-y-2">
-            <Field data-invalid={!!errors.password}>
+            {/* Password */}
+            <div className="space-y-2">
               <FieldLabel
                 htmlFor="password"
                 className="text-foreground font-medium"
@@ -115,12 +108,10 @@ export default function Register() {
                   ? errors.password.message
                   : "At least 6 characters"}
               </FieldDescription>
-            </Field>
-          </div>
+            </div>
 
-          {/* Confirm Password */}
-          <div className="space-y-2">
-            <Field data-invalid={!!errors.confirmPassword}>
+            {/* Confirm Password */}
+            <div className="space-y-2">
               <FieldLabel
                 htmlFor="confirm-password"
                 className="text-foreground font-medium"
@@ -142,19 +133,19 @@ export default function Register() {
                   ? errors.confirmPassword.message
                   : "Re-enter your password"}
               </FieldDescription>
-            </Field>
-          </div>
+            </div>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-          >
-            Create account
-          </Button>
-
-          {/* Footer */}
-          <div className="text-center text-sm text-muted-foreground">
+            {/* Submit */}
+            <Button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+            >
+              Create account
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
               to="/login"
@@ -162,9 +153,9 @@ export default function Register() {
             >
               Sign in
             </Link>
-          </div>
-        </Card>
-      </div>
-    </form>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }

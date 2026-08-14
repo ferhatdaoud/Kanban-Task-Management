@@ -36,10 +36,9 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Trash2, Plus, X } from "lucide-react";
 import api from "@/lib/api";
 
-const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
+const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen, canEditTasks = true }) => {
   const queryClient = useQueryClient();
 
-  // --- 1.STATES---
   const [taskTitle, setTaskTitle] = useState(task.title);
   const [taskDescription, setTaskDescription] = useState(
     task.description || "",
@@ -47,17 +46,15 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
   const [assignedUserId, setAssignedUserId] = useState(
     task.assignedTo?._id || "unassigned",
   );
-  const [isAssignOpen, setIsAssignOpen] = useState(true);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [targetBoardId, setTargetBoardId] = useState(board._id);
   const [commentText, setCommentText] = useState("");
 
-  // --- 2. QUERIES  ---
-  //fetching users
   const { data: allUsers } = useQuery({
     queryKey: ["users"],
     queryFn: () => api.get(`/user`).then((res) => res.data),
   });
-  //fetching comments
+
   const { data: comments } = useQuery({
     queryKey: ["comments", task._id],
     queryFn: () => api.get(`/comments/${task._id}`).then((res) => res.data),
@@ -67,8 +64,7 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
     queryKey: ["boards"],
     queryFn: () => api.get(`/boards`).then((res) => res.data),
   });
-  const [archived, setArchived] = useState(false);
-  // --- 3. MUTATIONS (assignedTo field REMOVED from payload) ---
+
   const mutationUpdateTaskAndDescription = useMutation({
     mutationFn: (id) =>
       api
@@ -79,7 +75,6 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
           assignedTo: assignedUserId === "unassigned" ? null : assignedUserId,
         })
         .then((res) => res.data),
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setIsSheetOpen(false);
@@ -101,23 +96,14 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
     mutationFn: (id) => api.delete(`/comments/${id}`),
     onSuccess: () => queryClient.invalidateQueries(["comments", task._id]),
   });
+
   const selectedUser = allUsers?.find((u) => u._id === assignedUserId);
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
-        {/* <div className="flex flex-1 flex-col min-w-0 cursor-pointer text-left">
-          <span
-            className={`text-sm font-medium truncate ${task.isDone ? "line-through text-muted-foreground" : "text-foreground"}`}
-          >
-            {task.title}
-          </span>
-          {task.description && (
-            <span className="text-xs text-muted-foreground line-clamp-1">
-              {task.description}
-            </span>
-          )}
-        </div> */}
+        {/* Hidden trigger — sheet is opened from TaskItem click */}
+        <div className="hidden" />
       </SheetTrigger>
 
       <SheetContent
@@ -133,7 +119,7 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7">
           <div className="space-y-2">
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Task Title
@@ -141,7 +127,8 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
             <Input
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
-              className="h-10 bg-muted/40 border-transparent shadow-none text-sm font-medium"
+              readOnly={!canEditTasks}
+              className={`h-10 bg-muted/40 border-transparent shadow-none text-sm font-medium ${!canEditTasks ? "opacity-70 cursor-not-allowed" : ""}`}
             />
           </div>
 
@@ -152,23 +139,20 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
             <Textarea
               value={taskDescription}
               onChange={(e) => setTaskDescription(e.target.value)}
-              className="min-h-[100px] resize-none bg-muted/40 border-transparent shadow-none text-sm"
+              readOnly={!canEditTasks}
+              className={`min-h-[100px] resize-none bg-muted/40 border-transparent shadow-none text-sm ${!canEditTasks ? "opacity-70 cursor-not-allowed" : ""}`}
             />
           </div>
 
-          {/* --- ASSIGNED USERS (Logic Stripped) --- */}
+          {/* --- ASSIGNED USERS --- */}
           <div className="space-y-3">
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
               Assigned Users
             </Label>
 
             <div className="flex flex-col gap-2">
-              {/* 
-                  TASK: This is where you will display the 'Current Badge' 
-                  once you have the state wired up.
-               */}
               {selectedUser && (
-                <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md w-max mb-2">
+                <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md w-max">
                   <span className="text-xs font-medium">
                     {selectedUser.name}
                   </span>
@@ -187,20 +171,12 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                   <Button
                     variant="secondary"
                     size="sm"
+                    disabled={!canEditTasks}
                     className="w-max h-7 px-3 bg-muted/40 text-xs text-muted-foreground shadow-none"
                   >
                     <Plus className="mr-1 h-3 w-3" /> Assign
                   </Button>
                 </PopoverTrigger>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-muted-foreground font-normal shadow-none border-border/60"
-                  >
-                    <Plus className="mr-2 h-4 w-4" /> Search to assign...
-                  </Button>
-                </PopoverTrigger>
-
                 <PopoverContent className="p-0 w-[300px]" align="start">
                   <Command>
                     <CommandInput
@@ -210,9 +186,6 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                     <CommandList className="max-h-[220px]">
                       <CommandEmpty>No users found.</CommandEmpty>
                       <CommandGroup>
-                        {/* 
-                           mapping through users
-                        */}
                         {allUsers?.map((user) => {
                           return (
                             <CommandItem
@@ -225,11 +198,9 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                               className="flex items-center py-2.5 cursor-pointer"
                             >
                               <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold mr-3 shrink-0">
-                                ?
+                                {user.name?.charAt(0).toUpperCase() || "U"}
                               </div>
-                              <span className="text-sm italic">
-                                {user.name}
-                              </span>
+                              <span className="text-sm">{user.name}</span>
                             </CommandItem>
                           );
                         })}
@@ -245,8 +216,12 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
               Current List
             </Label>
-            <Select value={targetBoardId} onValueChange={setTargetBoardId}>
-              <SelectTrigger className="w-full bg-background border-border/60 shadow-sm h-10">
+            <Select
+              value={targetBoardId}
+              onValueChange={setTargetBoardId}
+              disabled={!canEditTasks}
+            >
+              <SelectTrigger className={`w-full bg-background border-border/60 shadow-sm h-10 ${!canEditTasks ? "opacity-70" : ""}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -291,16 +266,18 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                           {new Date(comment.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-5 w-5 p-0 opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-destructive"
-                        onClick={() =>
-                          mutationDeleteComment.mutate(comment._id)
-                        }
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      {canEditTasks && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 opacity-0 group-hover/comment:opacity-100 text-muted-foreground hover:text-destructive"
+                          onClick={() =>
+                            mutationDeleteComment.mutate(comment._id)
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                     <div className="text-sm text-foreground mt-1 bg-muted/30 p-2.5 rounded-md border border-border/30">
                       {comment.content}
@@ -319,36 +296,41 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Write a comment..."
-                  className="min-h-[80px] text-sm resize-none bg-background border-border/60"
+                  readOnly={!canEditTasks}
+                  className={`min-h-[80px] text-sm resize-none bg-background border-border/60 ${!canEditTasks ? "opacity-70 cursor-not-allowed" : ""}`}
                 />
-                <div className="flex justify-end">
-                  <Button
-                    size="sm"
-                    onClick={() => mutationAddComment.mutate()}
-                    disabled={
-                      !commentText.trim() || mutationAddComment.isPending
-                    }
-                    variant="secondary"
-                  >
-                    Add Comment
-                  </Button>
-                </div>
+                {canEditTasks && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => mutationAddComment.mutate()}
+                      disabled={
+                        !commentText.trim() || mutationAddComment.isPending
+                      }
+                      variant="secondary"
+                    >
+                      Add Comment
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         <SheetFooter className="p-4 border-t border-border/40 bg-background shrink-0">
-          <Button
-            size="lg"
-            className="w-full bg-black text-white h-11 text-sm font-bold"
-            onClick={() => mutationUpdateTaskAndDescription.mutate(task._id)}
-            disabled={
-              mutationUpdateTaskAndDescription.isPending || !taskTitle.trim()
-            }
-          >
-            Save All Changes
-          </Button>
+          {canEditTasks && (
+            <Button
+              size="lg"
+              className="w-full bg-black text-white h-11 text-sm font-bold"
+              onClick={() => mutationUpdateTaskAndDescription.mutate(task._id)}
+              disabled={
+                mutationUpdateTaskAndDescription.isPending || !taskTitle.trim()
+              }
+            >
+              Save All Changes
+            </Button>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

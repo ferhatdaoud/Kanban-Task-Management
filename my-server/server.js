@@ -32,7 +32,7 @@ app.use(express.json());
 
 //REgistration Route
 app.get("/me", protect, (req, res) => {
-  res.status(200).json({ message: "the backend is booting hold on" });
+  res.status(200).json(req.user);
 });
 app.get("/", protect, (req, res) => {
   res.status(200).json({ msg: "Welcome", user: req.user });
