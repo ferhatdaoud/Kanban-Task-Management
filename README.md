@@ -1,93 +1,131 @@
 # Kanban Task Management
 
-A full-stack task management app built around the classic Kanban board idea — boards, tasks, subtasks, due dates, comments, and the ability to assign work to other people. It's been running fine for a while, though like any side project it has a few rough edges worth knowing about upfront.
+A full-stack task management application built around the classic Kanban board workflow. Create boards, organize tasks, assign work, track progress, and collaborate with your team using role-based permissions.
 
-## Tech stack
+## Features
 
-**Frontend:** React 19 with React Router 7 (SSR enabled), Vite, Tailwind CSS, and shadcn/ui for the UI bits. I used TanStack Query for server state, react-hook-form + Zod for forms, and Axios for requests.
+### Current
+- **Authentication** — Register, login, and logout with JWT stored in HTTP-only cookies
+- **Boards** — Create, rename, and delete boards with progress tracking
+- **Tasks** — Create, edit, archive, and delete tasks within boards
+- **Subtasks & Due Dates** — Add subtasks and due dates to tasks
+- **Task Assignment** — Assign tasks to specific users
+- **Comments** — Post and manage comments on tasks
+- **Search** — Filter tasks by title within a board
+- **Reorder** — Move boards and tasks up/down to organize your workflow
+- **Archive** — Archive completed tasks and restore them later
+- **Role-based Access** — Three roles (`owner`, `editor`, `viewer`) with different permission levels
+- **Responsive UI** — Built with Tailwind CSS and shadcn/ui components
 
-**Backend:** Express 5 on Node.js (ESM only), MongoDB via Mongoose. Auth uses bcrypt + JWT stored in HTTP-only cookies.
+### Coming Soon
+- **Drag & drop** — Reorder tasks and boards by dragging
+- **Labels & priorities** — Tag tasks with labels and set priority levels
+- **Due date reminders** — Email or in-app notifications for upcoming deadlines
+- **Activity log** — Track changes and updates across boards
+- **Dark mode** — Toggle between light and dark themes
 
-## What it does
+## Tech Stack
 
-- Register / login / logout with cookie-based JWT auth
-- Create and manage boards with progress tracking
-- Add tasks with subtasks, due dates, and assignment to users
-- Comments on tasks with a slide-over detail view
-- Archive completed tasks and bring them back when needed
-- Search tasks within a board
-- Reorder boards and tasks without fighting array indices
-- Role-based access (`owner`, `editor`, `viewer`) so you can share boards
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, React Router 7, Vite, Tailwind CSS, TanStack Query |
+| UI Components | shadcn/ui (Radix UI primitives, lucide-react icons) |
+| Forms | react-hook-form + Zod |
+| Backend | Node.js (ESM), Express 5 |
+| Database | MongoDB via Mongoose |
+| Auth | bcrypt, jsonwebtoken, cookie-parser, cors |
 
-## A few things worth knowing
+## Project Structure
 
-The repo is technically a monorepo, but the two packages (`my-client` and `my-server`) don't actually share a root `package.json`. That means you `npm install` and `npm run dev` separately for each. I should probably fix that someday.
+```
+kanban-task-management/
+├── my-client/          # React frontend
+│   ├── app/
+│   │   ├── pages/      # Route pages
+│   │   ├── components/ # UI components (shadcn/ui + custom)
+│   │   └── lib/        # API client, schemas, utils
+│   └── Dockerfile
+├── my-server/          # Express backend
+│   ├── src/
+│   │   ├── models/     # Mongoose models
+│   │   ├── controllers/ # Request handlers
+│   │   ├── routes/     # Express routers
+│   │   ├── middleware/  # Auth middleware
+│   │   └── utils/      # Shared utilities
+│   └── server.js
+```
 
-Also, `connectDB()` gets called twice in `server.js` — harmless because Mongoose caches the connection, but not my finest moment. The RBAC helpers are duplicated between the board and task controllers instead of being a shared middleware. None of these are showstoppers, just things I noticed while writing this.
-
-## Getting it running
-
-### Prerequisites
+## Prerequisites
 
 - Node.js 20+
 - npm
-- MongoDB (local or Atlas)
+- MongoDB (local instance or MongoDB Atlas)
 
-### Setup
+## Getting Started
 
-**Server:**
+### 1. Clone the repository
+
 ```bash
-cd my-server
-npm install
+git clone https://github.com/<your-username>/kanban-task-management.git
+cd kanban-task-management
 ```
 
-Create a `.env` file:
-```
+### 2. Set up environment variables
+
+**Server** — create `my-server/.env`:
+
+```env
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
 JWT_SECRET=your-super-secret-key
 JWT_EXPIRE=7d
+PORT=5000
 ```
 
-Then start it:
-```bash
-npm run dev
-# runs on http://localhost:5000
-```
+**Client** — create `my-client/.env`:
 
-**Client:**
-```bash
-cd my-client
-npm install
-```
-
-Create a `.env` file:
-```
+```env
 VITE_API_URL=http://localhost:5000
 ```
 
-Then start it:
+### 3. Install dependencies
+
 ```bash
-npm run dev
-# runs on http://localhost:5173
+# Server
+cd my-server
+npm install
+
+# Client
+cd ../my-client
+npm install
 ```
 
-Open `http://localhost:5173`, sign up, and start adding boards.
+### 4. Run the development servers
+
+```bash
+# Terminal 1 — Backend
+cd my-server
+npm run dev
+# → http://localhost:5000
+
+# Terminal 2 — Frontend
+cd my-client
+npm run dev
+# → http://localhost:5173
+```
+
+Open `http://localhost:5173`, create an account, and start building boards.
 
 ## Production
 
-Build the client:
 ```bash
+# Build the client
 cd my-client
 npm run build
-```
 
-Start the server:
-```bash
+# Start the server
 cd my-server
 npm start
 ```
-
-The client also has a multi-stage Dockerfile if that's your thing.
 
 ## License
 
