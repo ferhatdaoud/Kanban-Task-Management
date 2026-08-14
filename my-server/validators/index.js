@@ -49,3 +49,13 @@ export const createCommentSchema = z.object({
 export const updateCommentSchema = z.object({
   content: z.string().min(1, "Comment cannot be empty"),
 });
+
+// board members
+export const addMemberSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+  roleId: z.string().min(1, "Role ID is required"),
+});
+
+export const updateMemberRoleSchema = z.object({
+  roleId: z.string().min(1, "Role ID is required"),
+});

@@ -4,6 +4,8 @@ import {
   createBoardSchema,
   updateBoardSchema,
   reorderBoardsSchema,
+  addMemberSchema,
+  updateMemberRoleSchema,
 } from "../../validators/index.js";
 import {
   createBoard,
@@ -11,6 +13,10 @@ import {
   deleteBoardById,
   updateBoard,
   reorderBoards,
+  addMember,
+  removeMember,
+  updateMemberRole,
+  getRoles,
 } from "../controllers/boardController.js";
 import protect from "../middleware/auth.js";
 
@@ -26,5 +32,21 @@ router.put(
 );
 router.delete("/:id", protect, deleteBoardById);
 router.put("/:id", protect, validateRequest(updateBoardSchema), updateBoard);
+
+// Member management
+router.post(
+  "/:id/members",
+  protect,
+  validateRequest(addMemberSchema),
+  addMember,
+);
+router.delete("/:id/members/:userId", protect, removeMember);
+router.put(
+  "/:id/members/:userId",
+  protect,
+  validateRequest(updateMemberRoleSchema),
+  updateMemberRole,
+);
+router.get("/roles", protect, getRoles);
 
 export default router;

@@ -15,7 +15,12 @@ const boardSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    members: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    members: [
+      {
+        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        role: { type: Schema.Types.ObjectId, ref: "Role", required: true },
+      },
+    ],
     position: {
       type: Number,
       default: Date.now(),
