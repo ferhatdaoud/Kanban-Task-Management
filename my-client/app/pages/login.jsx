@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function Login() {
   const [error, setError] = useState(null);
@@ -29,10 +30,12 @@ export default function Login() {
   const onSubmit = async (data) => {
     try {
       await api.post("/login", data);
+      toast.success("Welcome back!");
       navigate("/");
     } catch (error) {
-      console.error(error.response.data);
-      setError(error.response.data.msg);
+      const msg = error.response?.data?.msg || "Login failed";
+      setError(msg);
+      toast.error(msg);
     }
   };
   return (

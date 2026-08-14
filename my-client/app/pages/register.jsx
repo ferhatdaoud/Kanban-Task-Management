@@ -9,6 +9,7 @@ import api from "@/lib/api";
 
 import { useNavigate } from "react-router";
 import { registerSchema } from "../lib/schemas/authSchema";
+import { toast } from "sonner";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -23,9 +24,11 @@ export default function Register() {
   const onSubmit = async (data) => {
     try {
       await api.post("/register", data);
+      toast.success("Account created! Welcome aboard.");
       navigate("/");
     } catch (error) {
-      console.error(error.response.data);
+      const msg = error.response?.data?.msg || "Registration failed";
+      toast.error(msg);
     }
   };
   return (

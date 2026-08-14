@@ -3,7 +3,7 @@ import BoardCard from "./BoardCard";
 import { FolderOpen } from "lucide-react";
 import CreateBoard from "./CreateBoard";
 
-const Boards = ({ boards }) => {
+const Boards = ({ boards, currentUser }) => {
   if (boards?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -27,7 +27,7 @@ const Boards = ({ boards }) => {
   return (
     <div className="flex h-full gap-4 overflow-x-auto">
       {boards?.map((board) => (
-        <BoardCard key={board._id} board={board} />
+        <BoardCard key={board._id} board={board} currentUser={currentUser} />
       ))}
     </div>
   );
