@@ -8,17 +8,17 @@ import {
   DialogFooter,
 } from "./ui/dialog";
 import api from "@/lib/api";
-
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 const CreateBoard = () => {
-  //stats
   const [board, setBoard] = useState("");
-  //dialog opener for adding board
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  //creating board
+
   const mutation = useMutation({
     mutationFn: () =>
       api.post("/boards", { title: board }).then((res) => res.data),
@@ -41,13 +41,18 @@ const CreateBoard = () => {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle>Create New Board</DialogTitle>
-        <div className="py-4">
-          <input
-            placeholder="Enter Board Name"
+        <DialogHeader>
+          <DialogTitle>Create New Board</DialogTitle>
+        </DialogHeader>
+        <div className="py-4 space-y-2">
+          <Label htmlFor="board-name">Board Name</Label>
+          <Input
+            id="board-name"
+            placeholder="e.g., Sprint Planning"
             value={board}
-            className="w-full"
             onChange={(e) => setBoard(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && mutation.mutate()}
+            autoFocus
           />
         </div>
         <DialogFooter>

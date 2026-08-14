@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import api from "@/lib/api";
 import { Boards } from "@/components/Boards";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useNavigate, Navigate } from "react-router";
@@ -35,7 +36,26 @@ export default function Home() {
   };
 
   if (authError) return <Navigate to="/register" replace />;
-  if (authLoading) return <div>Loading...</div>;
+  if (authLoading)
+    return (
+      <div className="flex h-screen flex-col bg-background">
+        <div className="border-b border-border px-4 py-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64 mt-2" />
+        </div>
+        <main className="flex-1 overflow-hidden p-6">
+          <div className="flex h-full gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="w-80 shrink-0 space-y-3">
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
   if (error) return <div>{error.message}</div>;
   if (isLoading) return <div>Loading...</div>;
   return (

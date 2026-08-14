@@ -10,7 +10,6 @@ const TaskItem = ({ task, board }) => {
   const queryClient = useQueryClient();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // --- MUTATIONS ---
   const mutationDeleteTask = useMutation({
     mutationFn: (id) => api.delete(`/tasks/${id}`).then((res) => res.data),
     onSuccess: () =>
@@ -23,7 +22,7 @@ const TaskItem = ({ task, board }) => {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["tasks", board._id] }),
   });
-  //archiving handler
+
   const mutationToggleArchive = useMutation({
     mutationFn: (id) =>
       api
@@ -34,6 +33,7 @@ const TaskItem = ({ task, board }) => {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["tasks", board._id] }),
   });
+
   const mutationReorder = useMutation({
     mutationFn: (idListArray) =>
       api.put(`/tasks/reorderTasks`, {
@@ -41,7 +41,6 @@ const TaskItem = ({ task, board }) => {
       }),
   });
 
-  // --- REORDER HANDLERS ---
   const syncOrder = (newArray) => {
     queryClient.setQueryData(["tasks", board._id], newArray);
     mutationReorder.mutate(newArray);
@@ -86,17 +85,17 @@ const TaskItem = ({ task, board }) => {
     newArray.push(removed);
     syncOrder(newArray);
   };
+
   return (
-    // 1. ADDED onClick and cursor-pointer to the main container
     <>
       <div
         onClick={() => setIsSheetOpen(true)}
-        className="group relative flex flex-col gap-3 rounded-lg border border-border/60 bg-white p-3 shadow-sm hover:shadow-md transition-all w-full cursor-pointer"
+        className="group relative flex flex-col gap-3 rounded-lg border border-border/60 bg-card p-3 shadow-sm hover:shadow-md transition-all w-full cursor-pointer"
       >
         {/* 3-Dot Menu */}
         <div
           className="absolute top-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => e.stopPropagation()} // 2. Stop propagation so menu click doesn't open sheet
+          onClick={(e) => e.stopPropagation()}
         >
           <DropDownMenue
             task={task}
@@ -116,7 +115,7 @@ const TaskItem = ({ task, board }) => {
           {/* Checkbox */}
           <button
             onClick={(e) => {
-              e.stopPropagation(); // 3. Stop propagation so toggling 'done' doesn't open sheet
+              e.stopPropagation();
               mutationToggleDone.mutate(_id);
             }}
             disabled={mutationToggleDone.isPending}
@@ -133,7 +132,9 @@ const TaskItem = ({ task, board }) => {
 
           <div className="flex flex-col gap-1.5 flex-1 min-w-0 pr-4">
             <h3
-              className={`text-sm font-bold text-foreground leading-tight truncate ${task.isDone ? "line-through text-muted-foreground" : ""}`}
+              className={`text-sm font-bold text-foreground leading-tight truncate transition-all ${
+                task.isDone ? "line-through text-muted-foreground" : ""
+              }`}
             >
               {task.title}
             </h3>
@@ -145,7 +146,7 @@ const TaskItem = ({ task, board }) => {
             )}
 
             <div className="mt-0.5">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
                 {board.title}
               </span>
             </div>
@@ -158,8 +159,8 @@ const TaskItem = ({ task, board }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {task.assignedTo ? (
-              <div className="flex items-center gap-2 bg-[#F8F9FA] px-2 py-1 rounded-md border border-border/50">
-                <div className="h-5 w-5 rounded-full bg-purple-500 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
+              <div className="flex items-center gap-2 bg-muted/50 px-2 py-1 rounded-md border border-border/50">
+                <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground shrink-0">
                   {task.assignedTo.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <span className="text-xs font-semibold text-foreground truncate max-w-[120px]">
@@ -173,8 +174,6 @@ const TaskItem = ({ task, board }) => {
             )}
           </div>
         </div>
-
-        {/* The Hidden TaskDetails Component */}
       </div>
       <TaskDetails
         task={task}

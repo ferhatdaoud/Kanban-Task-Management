@@ -9,25 +9,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import AddTaskModal from "./AddTaskModal";
 import { Input } from "../ui/input";
 import TaskList from "./TaskList";
 import ArchivedTasksModal from "./ArchivedTasksModal";
+
 const BoardCard = ({ board }) => {
-  //hooks
   const { _id, title } = board;
-  //States
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  //board states
   const [newTitle, setNewTitle] = useState(title);
   const [isEditing, setIsEditing] = useState(null);
-  //Task states
   const queryClient = useQueryClient();
-  //deleting board
+
   const mutationDeleteBoard = useMutation({
     mutationFn: (_id) => api.delete(`/boards/${_id}`).then((res) => res.data),
     onSuccess: () => queryClient.invalidateQueries(["boards"]),
@@ -43,62 +40,64 @@ const BoardCard = ({ board }) => {
   });
   const handleEditing = () => setIsEditing(!isEditing);
   const handleUpdate = () => mutationUpdateBoard.mutate(_id);
-  //fetching Tasks For Specific Board
+
   const { data: tasks } = useQuery({
-    queryKey: ["tasks", _id, searchQuery],
+    queryKey: ["tasks", _id],
     queryFn: () =>
       api.get(`/tasks/${_id}?search=${searchQuery}`).then((res) => res.data),
   });
-  //reorder handlers
+
+  useEffect(() => {
+    queryClient.invalidateQueries(["tasks", _id]);
+  }, [searchQuery, queryClient, _id]);
+
   const mutationReorderBoard = useMutation({
     mutationFn: (BoardArray) =>
       api.put("/boards/reorderBoard", {
         boards: BoardArray.map((g) => g._id),
       }),
   });
+
   const moveLeft = async () => {
     await queryClient.cancelQueries({ queryKey: ["boards"] });
 
     const data = queryClient.getQueryData(["boards"]);
     if (!data) return;
-    //finding the index of the card
     const index = data.findIndex((g) => g._id === _id);
-    //if its on far left
     if (index <= 0) return;
-
-    //create a copy and swap
 
     const newArr = [...data];
     const [removedboard] = newArr.splice(index, 1);
-    //tell ui to update
     newArr.splice(index - 1, 0, removedboard);
-    //invoke backend to save
+
     queryClient.setQueryData(["boards"], newArr);
     mutationReorderBoard.mutate(newArr);
   };
+
   const moveRight = async () => {
     await queryClient.cancelQueries({ queryKey: ["boards"] });
 
     const data = queryClient.getQueryData(["boards"]);
     if (!data) return;
-    //finding the index of the card
     const index = data.findIndex((g) => g._id === _id);
-    //if its on far right
     if (index >= data.length - 1) return;
-    //create a copy and swap
+
     const newArr = [...data];
     const [removedboard] = newArr.splice(index, 1);
     newArr.splice(index + 1, 0, removedboard);
-    //tell ui to update
+
     queryClient.setQueryData(["boards"], newArr);
-    //invoke backend to save
     mutationReorderBoard.mutate(newArr);
   };
+
+  const completedCount = tasks?.filter((t) => t.isDone).length || 0;
+  const totalCount = tasks?.length || 0;
+  const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
   return (
-    <div className="flex w-80 shrink-0 flex-col rounded-lg border border-border bg-card shadow-sm">
+    <div className="flex w-80 shrink-0 flex-col rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
       {/* HEADER SECTION */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 group/header">
-        {/* Title / Input Area */}
         <div className="min-w-0 flex-1">
           {isEditing ? (
             <Input
@@ -113,19 +112,15 @@ const BoardCard = ({ board }) => {
               <h2 className="truncate font-semibold text-card-foreground">
                 {title}
               </h2>
-
               <p className="text-xs text-muted-foreground">
-                {tasks?.filter((t) => t.isDone).length} of {tasks?.length}
-                completed
+                {completedCount} of {totalCount} completed
               </p>
             </>
           )}
         </div>
 
-        {/* Action Buttons Area */}
         <div className="flex items-center gap-1">
           {isEditing ? (
-            /* --- SHOW WHEN EDITING --- */
             <div className="flex items-center gap-1">
               <Button
                 onClick={handleUpdate}
@@ -163,13 +158,22 @@ const BoardCard = ({ board }) => {
           )}
         </div>
       </div>
+
+      {/* Progress Bar */}
+      <div className="h-1 w-full bg-muted">
+        <div
+          className="h-full bg-primary transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
       <TaskList tasks={tasks} board={board} />
+
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Search in {title}</DialogTitle>
           </DialogHeader>
-
           <div className="py-4 flex gap-2">
             <Input
               value={searchQuery}
@@ -187,13 +191,12 @@ const BoardCard = ({ board }) => {
               </Button>
             )}
           </div>
-
-          {/* Let's add a little info text to tell the user what's happening */}
           <p className="text-xs text-muted-foreground">
             Showing only tasks containing "{searchQuery}"
           </p>
         </DialogContent>
       </Dialog>
+
       <Dialog open={isArchiveOpen} onOpenChange={setIsArchiveOpen}>
         <DialogContent className="sm:max-w-125">
           <DialogHeader>
@@ -203,8 +206,6 @@ const BoardCard = ({ board }) => {
               permanently delete them here.
             </DialogDescription>
           </DialogHeader>
-
-          {/* THE LIST AREA */}
           <div className="py-4 min-h-[200px] max-h-[400px] overflow-y-auto space-y-3">
             <ArchivedTasksModal boardId={_id} />
             <p className="text-sm text-muted-foreground italic text-center py-8">

@@ -39,7 +39,6 @@ import api from "@/lib/api";
 const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
   const queryClient = useQueryClient();
 
-  // --- 1.STATES---
   const [taskTitle, setTaskTitle] = useState(task.title);
   const [taskDescription, setTaskDescription] = useState(
     task.description || "",
@@ -47,17 +46,15 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
   const [assignedUserId, setAssignedUserId] = useState(
     task.assignedTo?._id || "unassigned",
   );
-  const [isAssignOpen, setIsAssignOpen] = useState(true);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [targetBoardId, setTargetBoardId] = useState(board._id);
   const [commentText, setCommentText] = useState("");
 
-  // --- 2. QUERIES  ---
-  //fetching users
   const { data: allUsers } = useQuery({
     queryKey: ["users"],
     queryFn: () => api.get(`/user`).then((res) => res.data),
   });
-  //fetching comments
+
   const { data: comments } = useQuery({
     queryKey: ["comments", task._id],
     queryFn: () => api.get(`/comments/${task._id}`).then((res) => res.data),
@@ -67,8 +64,7 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
     queryKey: ["boards"],
     queryFn: () => api.get(`/boards`).then((res) => res.data),
   });
-  const [archived, setArchived] = useState(false);
-  // --- 3. MUTATIONS (assignedTo field REMOVED from payload) ---
+
   const mutationUpdateTaskAndDescription = useMutation({
     mutationFn: (id) =>
       api
@@ -79,7 +75,6 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
           assignedTo: assignedUserId === "unassigned" ? null : assignedUserId,
         })
         .then((res) => res.data),
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setIsSheetOpen(false);
@@ -101,23 +96,14 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
     mutationFn: (id) => api.delete(`/comments/${id}`),
     onSuccess: () => queryClient.invalidateQueries(["comments", task._id]),
   });
+
   const selectedUser = allUsers?.find((u) => u._id === assignedUserId);
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
-        {/* <div className="flex flex-1 flex-col min-w-0 cursor-pointer text-left">
-          <span
-            className={`text-sm font-medium truncate ${task.isDone ? "line-through text-muted-foreground" : "text-foreground"}`}
-          >
-            {task.title}
-          </span>
-          {task.description && (
-            <span className="text-xs text-muted-foreground line-clamp-1">
-              {task.description}
-            </span>
-          )}
-        </div> */}
+        {/* Hidden trigger — sheet is opened from TaskItem click */}
+        <div className="hidden" />
       </SheetTrigger>
 
       <SheetContent
@@ -133,7 +119,7 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7">
           <div className="space-y-2">
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Task Title
@@ -156,19 +142,15 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
             />
           </div>
 
-          {/* --- ASSIGNED USERS (Logic Stripped) --- */}
+          {/* --- ASSIGNED USERS --- */}
           <div className="space-y-3">
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">
               Assigned Users
             </Label>
 
             <div className="flex flex-col gap-2">
-              {/* 
-                  TASK: This is where you will display the 'Current Badge' 
-                  once you have the state wired up.
-               */}
               {selectedUser && (
-                <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md w-max mb-2">
+                <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md w-max">
                   <span className="text-xs font-medium">
                     {selectedUser.name}
                   </span>
@@ -192,15 +174,6 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                     <Plus className="mr-1 h-3 w-3" /> Assign
                   </Button>
                 </PopoverTrigger>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-muted-foreground font-normal shadow-none border-border/60"
-                  >
-                    <Plus className="mr-2 h-4 w-4" /> Search to assign...
-                  </Button>
-                </PopoverTrigger>
-
                 <PopoverContent className="p-0 w-[300px]" align="start">
                   <Command>
                     <CommandInput
@@ -210,9 +183,6 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                     <CommandList className="max-h-[220px]">
                       <CommandEmpty>No users found.</CommandEmpty>
                       <CommandGroup>
-                        {/* 
-                           mapping through users
-                        */}
                         {allUsers?.map((user) => {
                           return (
                             <CommandItem
@@ -225,11 +195,9 @@ const TaskDetails = ({ task, board, setIsSheetOpen, isSheetOpen }) => {
                               className="flex items-center py-2.5 cursor-pointer"
                             >
                               <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold mr-3 shrink-0">
-                                ?
+                                {user.name?.charAt(0).toUpperCase() || "U"}
                               </div>
-                              <span className="text-sm italic">
-                                {user.name}
-                              </span>
+                              <span className="text-sm">{user.name}</span>
                             </CommandItem>
                           );
                         })}
