@@ -5,11 +5,10 @@ import { hasRole } from "../utils/roleCheck.js";
 
 export const createBoard = async (req, res) => {
   try {
-    const ownerRole = await Role.findOne({ name: "owner" });
     const board = await Board.create({
       ...req.body,
       user: req.user._id,
-      members: ownerRole ? [{ user: req.user._id, role: ownerRole._id }] : [],
+      members: [],
     });
     res.status(201).json(board);
   } catch (error) {

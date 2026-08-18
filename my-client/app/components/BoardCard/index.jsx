@@ -66,7 +66,7 @@ const BoardCard = ({ board, currentUser }) => {
       });
     }
     board.members?.forEach((m) => {
-      if (m.user) {
+      if (m.user && m.user._id !== board.user?._id) {
         allMembers.push({
           name: m.user.name,
           avatar: m.user.name?.charAt(0).toUpperCase(),

@@ -283,9 +283,11 @@ const BoardMenue = ({
             )}
 
             {/* Members */}
-            {board?.members?.length > 0 && (
+            {board?.members?.filter((m) => m.user?._id !== board?.user?._id).length > 0 && (
               <>
-                {board.members.map((member) => (
+                {board.members
+                  .filter((m) => m.user?._id !== board?.user?._id)
+                  .map((member) => (
                   <div
                     key={member.user?._id}
                     className="flex items-center justify-between p-3 rounded-md border border-border/60"
@@ -350,7 +352,7 @@ const BoardMenue = ({
               </>
             )}
 
-            {!board?.members?.length && (
+            {board?.members?.filter((m) => m.user?._id !== board?.user?._id).length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4 italic">
                 No additional members
               </p>
